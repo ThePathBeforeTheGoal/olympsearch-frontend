@@ -2,7 +2,7 @@
 "use client";
 
 import React from "react";
-import type { Olympiad } from "@/lib/api";
+import type { Olympiad } from "@/types/Olympiad";
 
 export default function OlympiadCard({ item }: { item: Olympiad }) {
   return (
