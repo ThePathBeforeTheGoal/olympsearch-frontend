@@ -1,9 +1,11 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Search, Link2 } from "lucide-react";
+import { Search, Link2} from "lucide-react";
 import Image from "next/image";   // ← ЭТОТ ИМПОРТ НУЖЕН!
 import { useState } from "react";
+import Header from "../components/Header";
+
 
 type Olympiad = {
   id: number;
@@ -39,6 +41,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen relative overflow-x-hidden">
+      <Header/> {/* ← вот здесь */}
       <div className="fixed inset-0 gradient-bg" />
 
       <div className="relative z-10">
