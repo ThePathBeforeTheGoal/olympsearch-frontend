@@ -1,7 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Search, Trophy, Link2 } from "lucide-react";
+import { Search, Link2 } from "lucide-react";
+import Image from "next/image";   // ← ЭТОТ ИМПОРТ НУЖЕН!
 import { useState } from "react";
 
 type Olympiad = {
@@ -12,13 +13,14 @@ type Olympiad = {
   prize?: string;
   source_url?: string;
   is_active: boolean;
+  logo_url?: string | null;
 };
 
 const fetchOlympiads = async (): Promise<Olympiad[]> => {
-const res = await fetch(
-  `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/olympiads/`,
-  { cache: "no-store" } // ← всегда делать живой запрос, а не кешировать старый ответ
-);
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/olympiads/`,
+    { cache: "no-store" }
+  );
   if (!res.ok) throw new Error("Failed to fetch");
   return res.json();
 };
@@ -37,11 +39,10 @@ export default function Home() {
 
   return (
     <div className="min-h-screen relative overflow-x-hidden">
-      {/* Фон */}
       <div className="fixed inset-0 gradient-bg" />
 
       <div className="relative z-10">
-        {/* Hero */}
+        {/* Hero — без изменений */}
         <div className="text-center pt-20 pb-16 px-4">
           <h1 className="text-7xl md:text-9xl font-black bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-500 bg-clip-text text-transparent">
             {"OlympSearch".split("").map((letter, i) => (
@@ -100,9 +101,23 @@ export default function Home() {
                     style={{ animationDelay: `${i * 50 + 400}ms`, animationFillMode: "forwards" }}
                   >
                     <div className="glass-card p-6 h-96 flex flex-col">
-                      <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-32 mb-5 flex items-center justify-center text-gray-500 text-sm">
-                        Логотип олимпиады
-                      </div>
+                      {/* ←←← ЛОГОТИП С NEXT/IMAGE — КРАСИВО И БЕЗ ПРЕДУПРЕЖДЕНИЙ */}
+                      {o.logo_url ? (
+                        <div className="relative w-full h-32 mb-5 bg-white/10 rounded-xl overflow-hidden border border-white/20">
+                          <Image
+                            src={o.logo_url}
+                            alt={`${o.title} логотип`}
+                            fill
+                            sizes="25vw"
+                            className="object-contain p-4"
+                            unoptimized // ← обязательно для внешних ссылок (imgur и т.д.)
+                          />
+                        </div>
+                      ) : (
+                        <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-32 mb-5 flex items-center justify-center text-gray-500 text-sm">
+                          Логотип олимпиады
+                        </div>
+                      )}
 
                       <div className="flex-1 overflow-hidden">
                         <h3 className="text-xl font-bold text-center mb-3 line-clamp-2">
