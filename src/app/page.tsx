@@ -43,19 +43,19 @@ export default function Home() {
 
       <div className="relative z-10">
         {/* Hero — без изменений */}
-        <div className="relative z-20 text-center pt-16 pb-14 px-4">
-          <h1 className="text-5xl md:text-7xl font-black bg-gradient-to-r from-[#eeaef6] via-[#e7d8ff] to-white
-  bg-clip-text text-transparent tracking-tight opacity-0 animate-fade-up">
-  {"OlympSearch".split("").map((letter, i) => (
-    <span
-      key={i}
-      className="inline-block animate-char"
-      style={{ animationDelay: `${200 + i * 60}ms` }}
-    >
-      {letter === " " ? "\u00A0" : letter}
-    </span>
-  ))}
-</h1>
+<div className="relative z-50 text-center pt-16 pb-14 px-4">
+  <h1 className="text-5xl md:text-7xl font-black bg-gradient-to-r from-[#eeaef6] via-[#e7d8ff] to-white
+    bg-clip-text text-transparent tracking-tight opacity-0 animate-fade-up">
+    {"OlympSearch".split("").map((letter, i) => (
+      <span
+        key={i}
+        className="inline-block animate-char"
+        style={{ animationDelay: `${200 + i * 60}ms` }}
+      >
+        {letter === " " ? "\u00A0" : letter}
+      </span>
+    ))}
+  </h1>
 
           <p className="mt-6 text-xl md:text-2xl text-white font-medium opacity-0 animate-fade-up animation-delay-800">
             Олимпиады, хакатоны и мероприятия для студентов РФ
