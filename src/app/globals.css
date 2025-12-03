@@ -134,7 +134,7 @@
 
 /* === ГЛАСС-КАРТОЧКИ === */
 .glass-card {
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
   border: 1px solid rgba(255, 255, 255, 0.35);
@@ -175,12 +175,12 @@
 
 /* === Поле поиска === */
 input {
-  background: rgba(255, 255, 255, 0.55) !important;
+  background: rgba(255, 255, 255, 0.8) !important;
   border: 1px solid rgba(255, 255, 255, 0.5) !important;
   color: #0d0f28 !important;
 }
 input::placeholder {
-  color: rgba(0, 0, 0, 0.35) !important;
+  color: rgba(0, 0, 0, 0.65) !important;
 }
 
 /* По-буквенная анимация + плавное появление */
