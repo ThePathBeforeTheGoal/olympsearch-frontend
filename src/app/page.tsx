@@ -15,7 +15,9 @@ type Olympiad = {
 };
 
 const fetchOlympiads = async (): Promise<Olympiad[]> => {
-  const res = await fetch("http://localhost:8000/api/v1/olympiads/");
+  const res = await fetch(
+  `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/olympiads/`
+);
   if (!res.ok) throw new Error("Failed to fetch");
   return res.json();
 };
