@@ -43,20 +43,21 @@ export default function Home() {
 
       <div className="relative z-10">
         {/* Hero — без изменений */}
-        <div className="text-center pt-20 pb-16 px-4">
-          <h1 className="text-7xl md:text-9xl font-black bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-500 bg-clip-text text-transparent">
-            {"OlympSearch".split("").map((letter, i) => (
-              <span
-                key={i}
-                className="inline-block animate-char"
-                style={{ animationDelay: `${i * 70}ms` }}
-              >
-                {letter === " " ? "\u00A0" : letter}
-              </span>
-            ))}
-          </h1>
+        <div className="relative z-20 text-center pt-16 pb-14 px-4">
+          <h1 className="text-5xl md:text-7xl font-black bg-gradient-to-r from-[#eeaef6] via-[#e7d8ff] to-white
+  bg-clip-text text-transparent tracking-tight opacity-0 animate-fade-up">
+  {"OlympSearch".split("").map((letter, i) => (
+    <span
+      key={i}
+      className="inline-block animate-char"
+      style={{ animationDelay: `${200 + i * 60}ms` }}
+    >
+      {letter === " " ? "\u00A0" : letter}
+    </span>
+  ))}
+</h1>
 
-          <p className="mt-8 text-2xl md:text-3xl text-blue-100 font-light italic opacity-0 animate-fade-up animation-delay-1000">
+          <p className="mt-6 text-xl md:text-2xl text-white font-medium opacity-0 animate-fade-up animation-delay-800">
             Олимпиады, хакатоны и мероприятия для студентов РФ
           </p>
 
@@ -65,8 +66,8 @@ export default function Home() {
               <div className="absolute inset-0 rounded-full border-4 border-t-white/30 border-r-white/30 border-b-white/20 border-l-white/20 animate-spin-slow"></div>
               <div className="absolute inset-2 rounded-full border-4 border-t-white/60 border-r-transparent border-b-transparent border-l-transparent animate-spin-slow-reverse"></div>
             </div>
-            <p className="text-xl md:text-2xl font-medium text-cyan-300">
-              Живое обновление • Реальные данные
+            <p className="text-lg md:text-xl font-semibold bg-gradient-to-r  from-[#eeaef6] via-[#f7e8ff] to-white bg-clip-text text-transparent opacity-0 animate-fade-up animation-delay-1300">
+              Живое обновление & реальные данные
             </p>
           </div>
         </div>
