@@ -43,19 +43,11 @@ export default function Home() {
 
       <div className="relative z-10">
         {/* Hero — без изменений */}
-<div className="relative z-50 text-center pt-16 pb-14 px-4">
-  <h1 className="text-5xl md:text-7xl font-black bg-gradient-to-r from-[#eeaef6] via-[#e7d8ff] to-white
-    bg-clip-text text-transparent tracking-tight opacity-0 animate-fade-up">
-    {"OlympSearch".split("").map((letter, i) => (
-      <span
-        key={i}
-        className="inline-block animate-char"
-        style={{ animationDelay: `${200 + i * 60}ms` }}
-      >
-        {letter === " " ? "\u00A0" : letter}
-      </span>
-    ))}
-  </h1>
+<div className="relative z-100 text-center pt-16 pb-14 px-4">
+<h1 className="text-5xl md:text-7xl font-black bg-gradient-to-r from-[#eeaef6] via-[#e7d8ff] to-white
+  bg-clip-text text-transparent tracking-tight">
+  OlympSearch
+</h1>
 
           <p className="mt-6 text-xl md:text-2xl text-white font-medium opacity-0 animate-fade-up animation-delay-800">
             Олимпиады, хакатоны и мероприятия для студентов РФ
@@ -76,13 +68,13 @@ export default function Home() {
         <div className="max-w-2xl mx-auto px-4 mb-12">
           <div className="relative">
             <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-white/60 w-6 h-6" />
-            <input
-              type="text"
-              placeholder="Поиск по названию..."
-              className="w-full pl-14 pr-6 py-3 rounded-2xl bg-white/20 backdrop-blur-xl border border-white/30 text-lg text-white placeholder:text-white/60 focus:outline-none focus:ring-4 focus:ring-cyan-400/50 transition"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+<input
+  type="text"
+  placeholder="Поиск по названию..."
+  className="w-full pl-12 pr-4 py-2 rounded-2xl bg-white/20 backdrop-blur-xl border border-white/30 text-base text-white placeholder:text-sm placeholder:text-white/60 focus:outline-none focus:ring-4 focus:ring-cyan-400/50 transition"
+  value={search}
+  onChange={(e) => setSearch(e.target.value)}
+/>
           </div>
         </div>
 
