@@ -4,8 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Search, Link2 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import Header from "@/components/Header";
 import { useParams, useRouter } from "next/navigation";
+import Header from "@/components/Header";
 import type { Olympiad } from "@/types/Olympiad";
 
 const fetchOlympiads = async (): Promise<Olympiad[]> => {
@@ -20,39 +20,39 @@ const fetchOlympiads = async (): Promise<Olympiad[]> => {
 export default function CategoryPage() {
   const params = useParams();
   const router = useRouter();
-  // безопасное приведение к строке
-const categorySlug = Array.isArray(params.slug)
-  ? params.slug[0]
-  : params.slug || "";
+
+  // Безопасное приведение slug к строке (фиксит TS ошибки)
+  const categorySlug = Array.isArray(params.slug) ? params.slug[0] : params.slug || "";
 
   const [search, setSearch] = useState("");
-
   const { data: olympiads = [], isLoading } = useQuery({
-    queryKey: ["olympiads"],
+    queryKey: ["olympiads", categorySlug],
     queryFn: fetchOlympiads,
     refetchInterval: 30000,
   });
 
-  // Фильтр по категории
-const filteredByCategory = olympiads.filter(
-  (o) => o.category?.toLowerCase() === categorySlug.toLowerCase()
-);
+  // Фильтр по категории (с нормализацией регистра)
+  const filteredByCategory = olympiads.filter((o) =>
+    o.category?.toLowerCase().includes(categorySlug.toLowerCase()) ||
+    categorySlug.toLowerCase().includes(o.category?.toLowerCase() || "")
+  );
+
   // Фильтр поиска поверх категории
   const filtered = filteredByCategory.filter((o) =>
     o.title.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Автоперенаправление на карточку, если есть точное совпадение
-  const exactMatch = olympiads.find(
-    (o) => o.title.toLowerCase() === search.toLowerCase()
-  );
+  // Автоперенаправление на точное совпадение по названию (в эту категорию или глобально)
+  const exactMatch = olympiads.find((o) => o.title.toLowerCase() === search.toLowerCase());
   if (exactMatch) {
     router.push(`/olympiad/${exactMatch.slug}`);
+    return null; // Чтобы не рендерить страницу во время редиректа
   }
 
-  // Для красивого заголовка категории
-  const categoryTitle =
-    categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1);
+  // Красивый заголовок категории (с заглавной буквы)
+  const categoryTitle = categorySlug
+    ? categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1)
+    : "Категория";
 
   return (
     <div className="min-h-screen relative overflow-x-hidden">
@@ -60,14 +60,14 @@ const filteredByCategory = olympiads.filter(
       <div className="fixed inset-0 gradient-bg" />
 
       <div className="relative z-10">
-        {/* Заголовок категории */}
+        {/* H1 с названием категории (градиент, без полного Hero) */}
         <div className="text-center pt-20 pb-10 px-4">
           <h1 className="text-5xl md:text-6xl font-black bg-gradient-to-r from-[#eeaef6] via-[#e7d8ff] to-white bg-clip-text text-transparent tracking-tight">
             {categoryTitle}
           </h1>
         </div>
 
-        {/* Поиск */}
+        {/* Поиск (только по этой категории) */}
         <div className="max-w-2xl mx-auto px-4 mb-12">
           <div className="relative">
             <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-white/60 w-6 h-6" />
@@ -81,26 +81,20 @@ const filteredByCategory = olympiads.filter(
           </div>
         </div>
 
-        {/* Карточки */}
+        {/* Карточки мероприятий этой категории */}
         <div className="max-w-7xl mx-auto px-4 pb-20">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {isLoading
               ? Array(8)
                   .fill(0)
                   .map((_, i) => (
-                    <div
-                      key={i}
-                      className="h-96 rounded-3xl bg-white/5 backdrop-blur animate-pulse"
-                    />
+                    <div key={i} className="h-96 rounded-3xl bg-white/5 backdrop-blur animate-pulse" />
                   ))
               : filtered.map((o: Olympiad, i: number) => (
                   <div
                     key={o.id}
                     className="opacity-0 animate-fade-up"
-                    style={{
-                      animationDelay: `${i * 50 + 400}ms`,
-                      animationFillMode: "forwards",
-                    }}
+                    style={{ animationDelay: `${i * 50 + 400}ms`, animationFillMode: "forwards" }}
                   >
                     <div className="glass-card p-6 h-96 flex flex-col">
                       {o.logo_url ? (
@@ -158,7 +152,7 @@ const filteredByCategory = olympiads.filter(
                           className="inline-flex items-center justify-center gap-2 text-blue-600 hover:text-blue-800 text-sm font-medium transition"
                         >
                           <Link2 className="w-4 h-4" />
-                          Перейти на сайт
+                          Перейти на сайт олимпиады
                         </a>
                       </div>
                     </div>

@@ -4,7 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Search, Link2 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import Header from "../components/Header";
+import Header from "@/components/Header";
+import Link from "next/link";
 
 type Olympiad = {
   id: number;
@@ -18,18 +19,6 @@ type Olympiad = {
   logo_url?: string | null;
 };
 
-const categories = [
-  { title: "Олимпиады", slug: "olympiads" },
-  { title: "Конкурсы", slug: "contests" },
-  { title: "Конференции", slug: "conferences" },
-  { title: "Хакатоны", slug: "hackathons" },
-  { title: "Летние школы", slug: "summer-schools" },
-  { title: "Воркшопы", slug: "workshops" },
-  { title: "Фестивали", slug: "festivals" },
-  { title: "Курсы", slug: "courses" },
-  { title: "Стажировки", slug: "internships" },
-];
-
 const fetchOlympiads = async (): Promise<Olympiad[]> => {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/olympiads/`,
@@ -39,6 +28,19 @@ const fetchOlympiads = async (): Promise<Olympiad[]> => {
   return res.json();
 };
 
+// ТОЧНО ТВОИ 9 КАТЕГОРИЙ (как ты просила)
+const CATEGORIES = [
+  { title: "Олимпиады",        slug: "olympiady",       icon: "olympiady.png" },
+  { title: "Конкурсы",         slug: "konkursy",        icon: "konkursy.png" },
+  { title: "Хакатоны",         slug: "hakatony",        icon: "hakatony.png" },
+  { title: "Кейс-чемпионаты",  slug: "keys-chempionaty",icon: "keys.png" },
+  { title: "Акселераторы",     slug: "akseleratory",    icon: "akseleratory.png" },
+  { title: "Конференции",      slug: "konferentsii",    icon: "konferentsii.png" },
+  { title: "Стажировки",       slug: "stazhirovki",     icon: "stazhirovki.png" },
+  { title: "Гранты",           slug: "granty",          icon: "granty.png" },
+  { title: "Мастер-классы",    slug: "master-klassy",   icon: "masterklassy.png" },
+];
+
 export default function Home() {
   const [search, setSearch] = useState("");
   const { data: olympiads = [], isLoading } = useQuery({
@@ -47,20 +49,29 @@ export default function Home() {
     refetchInterval: 30000,
   });
 
-  // --- глобальный поиск ---
+  // Глобальный поиск
   const filtered = search
-    ? olympiads.filter((o) => o.title.toLowerCase().includes(search.toLowerCase()))
+    ? olympiads.filter((o) =>
+        o.title.toLowerCase().includes(search.toLowerCase())
+      )
     : olympiads;
+
+  // Считаем количество мероприятий по категориям
+  const countByCategory = olympiads.reduce((acc, o) => {
+    const cat = o.category || "Олимпиады";
+    acc[cat] = (acc[cat] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
 
   return (
     <div className="min-h-screen relative overflow-x-hidden">
       <Header />
       <div className="fixed inset-0 gradient-bg" />
+
       <div className="relative z-10">
-        {/* Hero */}
+        {/* Hero — полностью оставляем */}
         <div className="relative z-100 text-center pt-16 pb-14 px-4">
-          <h1 className="text-5xl md:text-7xl font-black bg-gradient-to-r from-[#eeaef6] via-[#e7d8ff] to-white
-            bg-clip-text text-transparent tracking-tight">
+          <h1 className="text-5xl md:text-7xl font-black bg-gradient-to-r from-[#eeaef6] via-[#e7d8ff] to-white bg-clip-text text-transparent tracking-tight">
             OlympSearch
           </h1>
           <p className="mt-6 text-xl md:text-2xl text-white font-medium opacity-0 animate-fade-up animation-delay-800">
@@ -78,48 +89,60 @@ export default function Home() {
         </div>
 
         {/* Поиск */}
-        <div className="max-w-2xl mx-auto px-4 mb-12">
+        <div className="max-w-2xl mx-auto px-4 mb-10">
           <div className="relative">
             <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-white/60 w-6 h-6" />
             <input
               type="text"
               placeholder="Поиск по названию..."
-              className="w-full pl-12 pr-4 py-2 rounded-2xl bg-white/20 backdrop-blur-xl border border-white/30 text-base text-white placeholder:text-sm placeholder:text-white/60 focus:outline-none focus:ring-4 focus:ring-cyan-400/50 transition"
+              className="w-full pl-12 pr-4 py-3 rounded-2xl bg-white/20 backdrop-blur-xl border border-white/30 text-white placeholder:text-white/60 focus:outline-none focus:ring-4 focus:ring-cyan-400/50 transition"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
         </div>
 
-        {/* Категории */}
-        <div className="max-w-7xl mx-auto px-4 mb-12">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {categories.map((c) => (
-              <a
-                key={c.slug}
-                href={`/category/${c.slug}`}
-                className="flex items-center gap-2 p-3 rounded-xl bg-white/10 backdrop-blur hover:bg-white/20 transition"
-              >
-                <Image
-                  src={`/icons/${c.slug}.png`}
-                  alt={c.title}
-                  width={40}
-                  height={40}
-                  className="rounded-full"
-                />
-                <span className="text-white font-semibold">{c.title}</span>
-              </a>
+        {/* Надпись "Выберите категорию" */}
+        <div className="text-center mb-8">
+          <p className="text-white/70 italic text-lg">Выберите категорию</p>
+        </div>
+
+        {/* Сетка категорий — твои 9 */}
+        <div className="max-w-7xl mx-auto px-4 mb-16">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
+            {CATEGORIES.map((cat) => (
+              <Link key={cat.slug} href={`/category/${cat.slug}`}>
+                <div className="group cursor-pointer bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 hover:border-white/40 hover:bg-white/15 transition-all hover:scale-105">
+                  <div className="p-6 text-center">
+                    <div className="w-20 h-20 mx-auto mb-4 bg-white/20 rounded-2xl flex items-center justify-center overflow-hidden">
+                      <Image
+                        src={`/icons/${cat.icon}`}
+                        alt={cat.title}
+                        width={64}
+                        height={64}
+                        className="object-contain"
+                      />
+                    </div>
+                    <h3 className="text-white font-bold text-lg mb-2">{cat.title}</h3>
+                    <p className="text-white/60 text-sm">
+                      Всего в каталоге: {countByCategory[cat.title] || 0}
+                    </p>
+                  </div>
+                </div>
+              </Link>
             ))}
           </div>
         </div>
 
-        {/* Карточки */}
+        {/* Карточки мероприятий (остаются как были) */}
         <div className="max-w-7xl mx-auto px-4 pb-20">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {isLoading
-              ? Array(8).fill(0).map((_, i) => (
-                  <div key={i} className="h-96 rounded-3xl bg-white/5 backdrop-blur animate-pulse" />
-                ))
+              ? Array(12)
+                  .fill(0)
+                  .map((_, i) => (
+                    <div key={i} className="h-96 rounded-3xl bg-white/5 backdrop-blur animate-pulse" />
+                  ))
               : filtered.map((o, i) => (
                   <div
                     key={o.id}
@@ -143,14 +166,17 @@ export default function Home() {
                           Логотип олимпиады
                         </div>
                       )}
+
                       <div className="flex-1 overflow-hidden">
-                        <h3 className="text-xl font-bold text-center mb-3 line-clamp-2">
-                          {o.title}
-                        </h3>
+                        <h3 className="text-xl font-bold text-center mb-3 line-clamp-2">{o.title}</h3>
+
                         {o.subjects && o.subjects.length > 0 && (
                           <div className="flex flex-wrap gap-2 justify-center mb-4">
                             {o.subjects.slice(0, 4).map((s, idx) => (
-                              <span key={idx} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                              <span
+                                key={idx}
+                                className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"
+                              >
                                 {s}
                               </span>
                             ))}
@@ -159,12 +185,12 @@ export default function Home() {
                             )}
                           </div>
                         )}
+
                         {o.prize && (
-                          <p className="text-center text-sm text-gray-700 line-clamp-2 mt-3">
-                            {o.prize}
-                          </p>
+                          <p className="text-center text-sm text-gray-700 line-clamp-2 mt-3">{o.prize}</p>
                         )}
                       </div>
+
                       <div className="mt-6 pt-4 border-t border-gray-200">
                         <a
                           href={o.source_url || "#"}
