@@ -30,15 +30,15 @@ const fetchOlympiads = async (): Promise<Olympiad[]> => {
 
 // ТОЧНО ТВОИ 9 КАТЕГОРИЙ (как ты просила)
 const CATEGORIES = [
-  { title: "Олимпиады",        slug: "олимпиады",       icon: "olympiady.png" },
-  { title: "Конкурсы",         slug: "конкурсы",        icon: "konkursy.png" },
-  { title: "Хакатоны",         slug: "хакатоны",        icon: "hakatony.png" },
-  { title: "Кейс-чемпионаты",  slug: "кейс-чемпионаты", icon: "keys.png" },
-  { title: "Акселераторы",     slug: "акселераторы",    icon: "akseleratory.png" },
-  { title: "Конференции",      slug: "конференции",     icon: "konferentsii.png" },
-  { title: "Стажировки",       slug: "стажировки",      icon: "stazhirovki.png" },
-  { title: "Гранты",           slug: "гранты",          icon: "granty.png" },
-  { title: "Мастер-классы",    slug: "мастер-классы",   icon: "masterklassy.png" },
+  { title: "Олимпиады",        slug: "olimpiady",        icon: "olympiady.png" },
+  { title: "Конкурсы",         slug: "konkursy",         icon: "konkursy.png" },
+  { title: "Хакатоны",         slug: "hakatony",         icon: "hakatony.png" },
+  { title: "Кейс-чемпионаты",  slug: "keys-chempionaty", icon: "keys.png" },
+  { title: "Акселераторы",     slug: "akseleratory",     icon: "akseleratory.png" },
+  { title: "Конференции",      slug: "konferentsii",     icon: "konferentsii.png" },
+  { title: "Стажировки",       slug: "stazhirovki",      icon: "stazhirovki.png" },
+  { title: "Гранты",           slug: "granty",           icon: "granty.png" },
+  { title: "Мастер-классы",    slug: "master-klassy",    icon: "masterklassy.png" },
 ];
 
 export default function Home() {

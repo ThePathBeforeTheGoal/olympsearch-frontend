@@ -8,54 +8,57 @@ import { useParams, useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import type { Olympiad } from "@/types/Olympiad";
 
-const fetchOlympiads = async (): Promise<Olympiad[]> => {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/olympiads/`,
-    { cache: "no-store" }
-  );
-  if (!res.ok) throw new Error("Failed to fetch");
-  return res.json();
+// Маппинг slug → точное название из базы
+const SLUG_TO_CATEGORY: Record<string, string> = {
+  olimpiady: "Олимпиады",
+  konkursy: "Конкурсы",
+  hakatony: "Хакатоны",
+  "keys-chempionaty": "Кейс-чемпионаты",
+  akseleratory: "Акселераторы",
+  konferentsii: "Конференции",
+  stazhirovki: "Стажировки",
+  granty: "Гранты",
+  "master-klassy": "Мастер-классы",
 };
 
 export default function CategoryPage() {
   const params = useParams();
   const router = useRouter();
 
-  // Безопасно получаем slug
-  const rawSlug = Array.isArray(params.slug) ? params.slug[0] : params.slug || "";
-
-  // Превращаем slug в точное название категории из базы
-  const categoryTitle = rawSlug
-    .split("-")
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ")                     // ← было " "
-    .replace("кейс чемпионаты", "Кейс-чемпионаты")
-    .replace("мастер классы", "Мастер-классы")
-    .trim();                        // ← ДОБАВИЛ trim() — УБИРАЕТ ПРОБЕЛЫ В КОНЦЕ!
-
-  const displayTitle = categoryTitle || "Категория";
+  const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug || "";
+  const categoryName = SLUG_TO_CATEGORY[slug] || "Неизвестная категория";
+  const pageTitle = categoryName;
 
   const [search, setSearch] = useState("");
 
-  const { data: olympiads = [], isLoading } = useQuery({
-    queryKey: ["olympiads", rawSlug],
-    queryFn: fetchOlympiads,
+  // Запрос только по нужной категории через бэкенд
+  const { data: olympiads = [], isLoading } = useQuery<Olympiad[]>({
+    queryKey: ["category", slug],
+    queryFn: async () => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/olympiads/category/${encodeURIComponent(categoryName)}`,
+        { cache: "no-store" }
+      );
+      if (!res.ok) return [];
+      return res.json();
+    },
     refetchInterval: 30000,
   });
 
-  // Фильтрация по точному названию категории из базы
- const filteredByCategory = olympiads.filter(o => o.category === categoryTitle);
-
   // Поиск внутри категории
-  const filtered = filteredByCategory.filter(o =>
+  const filtered = olympiads.filter((o: Olympiad) =>
     o.title.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Автоперенаправление при точном совпадении по названию
-  const exactMatch = olympiads.find(o => o.title.toLowerCase() === search.toLowerCase());
-  if (exactMatch && search) {
-    router.push(`/olympiad/${exactMatch.slug}`);
-    return null;
+  // Редирект при точном совпадении
+  if (search) {
+    const exact = olympiads.find(
+      (o: Olympiad) => o.title.toLowerCase() === search.toLowerCase()
+    );
+    if (exact) {
+      router.push(`/olympiad/${exact.slug}`);
+      return null;
+    }
   }
 
   return (
@@ -67,7 +70,7 @@ export default function CategoryPage() {
         {/* Заголовок категории */}
         <div className="text-center pt-20 pb-10 px-4">
           <h1 className="text-5xl md:text-6xl font-black bg-gradient-to-r from-[#eeaef6] via-[#e7d8ff] to-white bg-clip-text text-transparent tracking-tight">
-            {displayTitle}
+            {pageTitle}
           </h1>
         </div>
 
@@ -92,18 +95,24 @@ export default function CategoryPage() {
               Array(8)
                 .fill(0)
                 .map((_, i) => (
-                  <div key={i} className="h-96 rounded-3xl bg-white/5 backdrop-blur animate-pulse" />
+                  <div
+                    key={i}
+                    className="h-96 rounded-3xl bg-white/5 backdrop-blur animate-pulse"
+                  />
                 ))
             ) : filtered.length === 0 ? (
-              <div className="col-span-full text-center text-white/70 text-xl py-20">
+              <div className="col-span-full text-center text-white/70 text-2xl py-20">
                 В этой категории пока нет мероприятий
               </div>
             ) : (
-              filtered.map((o, i) => (
+              filtered.map((o: Olympiad, i: number) => (
                 <div
                   key={o.id}
                   className="opacity-0 animate-fade-up"
-                  style={{ animationDelay: `${i * 50 + 400}ms`, animationFillMode: "forwards" }}
+                  style={{
+                    animationDelay: `${i * 50 + 400}ms`,
+                    animationFillMode: "forwards",
+                  }}
                 >
                   <div className="glass-card p-6 h-96 flex flex-col">
                     {o.logo_url ? (
@@ -124,11 +133,13 @@ export default function CategoryPage() {
                     )}
 
                     <div className="flex-1 overflow-hidden">
-                      <h3 className="text-xl font-bold text-center mb-3 line-clamp-2">{o.title}</h3>
+                      <h3 className="text-xl font-bold text-center mb-3 line-clamp-2">
+                        {o.title}
+                      </h3>
 
                       {o.subjects && o.subjects.length > 0 && (
                         <div className="flex flex-wrap gap-2 justify-center mb-4">
-                          {o.subjects.slice(0, 4).map((s, idx) => (
+                          {o.subjects.slice(0, 4).map((s: string, idx: number) => (
                             <span
                               key={idx}
                               className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"
@@ -137,13 +148,17 @@ export default function CategoryPage() {
                             </span>
                           ))}
                           {o.subjects.length > 4 && (
-                            <span className="text-xs text-gray-600">+{o.subjects.length - 4}</span>
+                            <span className="text-xs text-gray-600">
+                              +{o.subjects.length - 4}
+                            </span>
                           )}
                         </div>
                       )}
 
                       {o.prize && (
-                        <p className="text-center text-sm text-gray-700 line-clamp-2 mt-3">{o.prize}</p>
+                        <p className="text-center text-sm text-gray-700 line-clamp-2 mt-3">
+                          {o.prize}
+                        </p>
                       )}
                     </div>
 
