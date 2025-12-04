@@ -24,13 +24,14 @@ export default function CategoryPage() {
   // Безопасно получаем slug
   const rawSlug = Array.isArray(params.slug) ? params.slug[0] : params.slug || "";
 
-  // Превращаем slug в точное название категории из базы (то, что лежит в o.category)
+  // Превращаем slug в точное название категории из базы
   const categoryTitle = rawSlug
     .split("-")
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ")
+    .join(" ")                     // ← было " "
     .replace("кейс чемпионаты", "Кейс-чемпионаты")
-    .replace("мастер классы", "Мастер-классы");
+    .replace("мастер классы", "Мастер-классы")
+    .trim();                        // ← ДОБАВИЛ trim() — УБИРАЕТ ПРОБЕЛЫ В КОНЦЕ!
 
   const displayTitle = categoryTitle || "Категория";
 
@@ -43,7 +44,7 @@ export default function CategoryPage() {
   });
 
   // Фильтрация по точному названию категории из базы
-  const filteredByCategory = olympiads.filter(o => o.category === categoryTitle);
+ const filteredByCategory = olympiads.filter(o => o.category === categoryTitle);
 
   // Поиск внутри категории
   const filtered = filteredByCategory.filter(o =>
