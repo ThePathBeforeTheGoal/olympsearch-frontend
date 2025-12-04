@@ -5,6 +5,7 @@ export type Olympiad = {
   description: string | null;
   organizer: string | null;
   level: string | null;
+  category: string;      // ← добавили
   subjects: string[];
   is_team: boolean | null;
   start_date: string | null;
