@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
+import Footer from "@/components/Footer";
 
 // Подключаем Inter правильно — теперь без предупреждений и с кэшированием
 const inter = Inter({
@@ -25,7 +26,9 @@ export default function RootLayout({
     <html lang="ru">
       <body className={inter.className}>
         <Providers>{children}</Providers>
+        <Footer />
       </body>
     </html>
   );
 }
+

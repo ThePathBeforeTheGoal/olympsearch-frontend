@@ -6,6 +6,8 @@ import Image from "next/image";
 import { useState } from "react";
 import Header from "@/components/Header";
 import Link from "next/link";
+import Footer from "@/components/Footer";
+
 
 type Olympiad = {
   id: number;
