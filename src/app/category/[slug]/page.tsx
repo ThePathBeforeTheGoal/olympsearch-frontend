@@ -12,9 +12,10 @@ import type { Olympiad } from "@/types/Olympiad";
 const SLUG_TO_CATEGORY: Record<string, string> = {
   olimpiady: "Олимпиады",
   konkursy: "Конкурсы",
-  hakatony: "Хакатоны",
-  "keys-chempionaty": "Кейс-чемпионаты",
-  akseleratory: "Акселераторы",
+hakatony: "Хакатоны",
+"keys-chempionaty": "Кейс-чемпионаты",
+"challenges": "Челленджи",   // ← вот сюда
+akseleratory: "Акселераторы",
   konferentsii: "Конференции",
   stazhirovki: "Стажировки",
   granty: "Гранты",
