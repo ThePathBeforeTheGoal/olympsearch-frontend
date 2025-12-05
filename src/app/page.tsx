@@ -40,9 +40,20 @@ export default function Home() {
     sort: panelFilters.sort,
   });
 
+const normalize = (s?: string) =>
+  (s || "").toString().trim().toLowerCase();
+
 const countByCategory = olympiads.reduce((acc, o) => {
-  const cat = o.category || "Олимпиады";
-  acc[cat] = (acc[cat] || 0) + 1;
+  const catRaw = o.category || "Олимпиады";
+  const catNorm = normalize(catRaw);
+  // Попытка привести к "canonical" заголовку из CATEGORIES
+  const canonical = CATEGORIES.find(c => normalize(c.title) === catNorm)?.title
+    || // если не нашли по русскому — попробовать сопоставить по slug
+    CATEGORIES.find(c => c.slug === catNorm)?.title
+    || // fallback — используем оригинальную строку (с обрезкой)
+    (catRaw || "Прочее");
+
+  acc[canonical] = (acc[canonical] || 0) + 1;
   return acc;
 }, {} as Record<string, number>);
 
