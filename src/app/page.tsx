@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Search, Link2 } from "lucide-react";
+import { Search } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import Header from "@/components/Header";
@@ -28,37 +28,33 @@ const fetchOlympiads = async (): Promise<Olympiad[]> => {
   return res.json();
 };
 
-// ТОЧНО ТВОИ 9 КАТЕГОРИЙ (как ты просила)
 const CATEGORIES = [
   { title: "Олимпиады",        slug: "olimpiady",        icon: "olympiady.png" },
   { title: "Конкурсы",         slug: "konkursy",         icon: "konkursy.png" },
-{ title: "Хакатоны",         slug: "hakatony",         icon: "hakatony.png" },
-{ title: "Челленджи",        slug: "challenges",      icon: "challenges.png" },  // ← вот сюда
-{ title: "Кейс-чемпионаты",  slug: "keys-chempionaty", icon: "keys.png" },
+  { title: "Хакатоны",         slug: "hakatony",         icon: "hakatony.png" },
+  { title: "Челленджи",        slug: "challenges",       icon: "challenges.png" },
+  { title: "Кейс-чемпионаты",  slug: "keys-chempionaty", icon: "keys.png" },
   { title: "Акселераторы",     slug: "akseleratory",     icon: "akseleratory.png" },
   { title: "Конференции",      slug: "konferentsii",     icon: "konferentsii.png" },
   { title: "Стажировки",       slug: "stazhirovki",      icon: "stazhirovki.png" },
   { title: "Гранты",           slug: "granty",           icon: "granty.png" },
   { title: "Мастер-классы",    slug: "master-klassy",    icon: "masterklassy.png" },
-  
 ];
 
 export default function Home() {
   const [search, setSearch] = useState("");
-  const { data: olympiads = [], isLoading } = useQuery({
+  const { data: olympiads = [] } = useQuery({
     queryKey: ["olympiads"],
     queryFn: fetchOlympiads,
     refetchInterval: 30000,
   });
 
-  // Глобальный поиск
   const filtered = search
     ? olympiads.filter((o) =>
         o.title.toLowerCase().includes(search.toLowerCase())
       )
     : olympiads;
 
-  // Считаем количество мероприятий по категориям
   const countByCategory = olympiads.reduce((acc, o) => {
     const cat = o.category || "Олимпиады";
     acc[cat] = (acc[cat] || 0) + 1;
@@ -71,7 +67,7 @@ export default function Home() {
       <div className="fixed inset-0 gradient-bg" />
 
       <div className="relative z-10">
-        {/* Hero — полностью оставляем */}
+        {/* Hero */}
         <div className="relative z-100 text-center pt-16 pb-14 px-4">
           <h1 className="text-5xl md:text-7xl font-black bg-gradient-to-r from-[#eeaef6] via-[#e7d8ff] to-white bg-clip-text text-transparent tracking-tight">
             OlympSearch
@@ -104,56 +100,48 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Надпись "Выберите категорию" */}
+        {/* Надпись */}
         <div className="text-center mb-8">
           <p className="text-white/70 italic text-lg">Выберите категорию</p>
         </div>
 
-        {/* Сетка категорий — твои 9 */}
+        {/* Категории */}
         <div className="max-w-7xl mx-auto px-4 mb-16">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
             {CATEGORIES.map((cat) => (
               <Link key={cat.slug} href={`/category/${cat.slug}`}>
-tsx<div className="group cursor-pointer bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 hover:border-purple-300/50 hover:bg-white/15 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20">
-  <div className="p-8 text-center">
+                <div className="group cursor-pointer bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 hover:border-purple-300/50 hover:bg-white/15 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20">
+                  <div className="p-8 text-center">
 
-    <div className="relative mx-auto mb-5 w-24 h-24 group-hover:scale-110 transition-transform duration-500">
-  {/* Внешнее свечение */}
-  <div className="absolute inset-0 rounded-full bg-purple-500/30 blur-2xl scale-0 group-hover:scale-150 transition-transform duration-1000" />
-  
-  {/* Магический круг + обрезка по кругу */}
-  <div className="relative w-24 h-24 rounded-full overflow-hidden ring-4 ring-purple-300/30 ring-offset-4 ring-offset-transparent shadow-2xl">
-    <Image
-      src={`/icons/${cat.icon}`}
-      alt={cat.title}
-      fill
-      sizes="96px"
-      className="object-cover scale-105 transition-transform duration-700 group-hover:scale-110"
-      unoptimized
-    />
-    
-    {/* Перламутровый оверлей сверху */}
-    <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/10 to-purple-300/20 mix-blend-overlay" />
-    
-    {/* Лёгкий блик */}
-    <div className="absolute top-2 left-3 w-8 h-16 bg-white/30 rounded-full blur-xl -rotate-45" />
-  </div>
-</div>
+                    {/* МАГИЧЕСКИЙ КРУГ */}
+                    <div className="relative mx-auto mb-5 w-24 h-24 group-hover:scale-110 transition-transform duration-500">
+                      <div className="absolute inset-0 rounded-full bg-purple-500/30 blur-2xl scale-0 group-hover:scale-150 transition-transform duration-1000" />
+                      <div className="relative w-24 h-24 rounded-full overflow-hidden ring-4 ring-purple-300/30 ring-offset-4 ring-offset-transparent shadow-2xl">
+                        <Image
+                          src={`/icons/${cat.icon}`}
+                          alt={cat.title}
+                          fill
+                          sizes="96px"
+                          className="object-cover scale-105 transition-transform duration-700 group-hover:scale-110"
+                          unoptimized
+                        />
+                        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/10 to-purple-300/20 mix-blend-overlay" />
+                        <div className="absolute top-2 left-3 w-8 h-16 bg-white/30 rounded-full blur-xl -rotate-45" />
+                      </div>
+                    </div>
 
-    <h3 className="text-white font-black text-xl mb-2 tracking-tight">
-      {cat.title}
-    </h3>
-    <p className="text-purple-200/80 text-sm font-medium">
-      Всего в каталоге: {countByCategory[cat.title] || 0}
-    </p>
-  </div>
-</div>
+                    <h3 className="text-white font-black text-xl mb-2 tracking-tight">
+                      {cat.title}
+                    </h3>
+                    <p className="text-purple-200/80 text-sm font-medium">
+                      Всего в каталоге: {countByCategory[cat.title] || 0}
+                    </p>
+                  </div>
+                </div>
               </Link>
             ))}
           </div>
         </div>
-
-
       </div>
     </div>
   );
