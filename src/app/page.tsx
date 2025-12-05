@@ -118,34 +118,37 @@ export default function Home() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
             {CATEGORIES.map((cat) => (
               <Link key={cat.slug} href={`/category/${cat.slug}`}>
-                <div className="group cursor-pointer bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 hover:border-purple-300/50 hover:bg-white/15 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20">
-                  <div className="p-8 text-center">
+<div className="group cursor-pointer bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 hover:border-purple-300/50 hover:bg-white/15 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20">
+  <div className="p-4 sm:p-6 lg:p-8 text-center flex flex-col items-center justify-center h-full">
 
-                    {/* МАГИЧЕСКИЙ КРУГ */}
-                    <div className="relative mx-auto mb-5 w-24 h-24 group-hover:scale-110 transition-transform duration-500">
-                      <div className="absolute inset-0 rounded-full bg-purple-500/30 blur-2xl scale-0 group-hover:scale-150 transition-transform duration-1000" />
-                      <div className="relative w-24 h-24 rounded-full overflow-hidden ring-4 ring-purple-300/30 ring-offset-4 ring-offset-transparent shadow-2xl">
-                        <Image
-                          src={`/icons/${cat.icon}`}
-                          alt={cat.title}
-                          fill
-                          sizes="96px"
-                          className="object-cover scale-105 transition-transform duration-700 group-hover:scale-110"
-                          unoptimized
-                        />
-                        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/10 to-purple-300/20 mix-blend-overlay" />
-                        <div className="absolute top-2 left-3 w-8 h-16 bg-white/30 rounded-full blur-xl -rotate-45" />
-                      </div>
-                    </div>
+    {/* Иконка — адаптивная */}
+    <div className="relative mb-3 sm:mb-5 w-16 h-16 sm:w-20 lg:w-24 sm:h-20 lg:h-24 group-hover:scale-110 transition-transform duration-500">
+      <div className="absolute inset-0 rounded-full bg-purple-500/30 blur-2xl scale-0 group-hover:scale-150 transition-transform duration-1000" />
+      <div className="relative w-full h-full rounded-full overflow-hidden ring-4 ring-purple-300/30 ring-offset-4 ring-offset-transparent shadow-2xl">
+        <Image
+          src={`/icons/${cat.icon}`}
+          alt={cat.title}
+          fill
+          sizes="(max-width: 640px) 64px, (max-width: 1024px) 80px, 96px"
+          className="object-cover scale-105 transition-transform duration-700 group-hover:scale-110"
+          unoptimized
+        />
+        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/10 to-purple-300/20 mix-blend-overlay" />
+        <div className="absolute top-1 left-2 sm:top-2 sm:left-3 w-6 h-12 sm:w-8 sm:h-16 bg-white/30 rounded-full blur-xl -rotate-45" />
+      </div>
+    </div>
 
-<h3 className="text-white font-black text-base sm:text-lg lg:text-xl mb-2 tracking-tight line-clamp-2 px-2">
-  {cat.title}
-</h3>
-                    <p className="text-purple-200/80 text-sm font-medium">
-                      Всего в каталоге: {countByCategory[cat.title] || 0}
-                    </p>
-                  </div>
-                </div>
+    {/* Название — теперь никогда не обрезается */}
+    <h3 className="text-white font-black text-sm sm:text-base lg:text-xl mb-1 leading-tight px-2">
+      {cat.title}
+    </h3>
+
+    {/* Счётчик */}
+    <p className="text-purple-200/80 text-xs sm:text-sm font-medium">
+      Всего в каталоге: {countByCategory[cat.title] || 0}
+    </p>
+  </div>
+</div>
               </Link>
             ))}
           </div>
