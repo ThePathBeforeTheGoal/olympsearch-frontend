@@ -1,34 +1,14 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import Header from "@/components/Header";
 import Link from "next/link";
 import Footer from "@/components/Footer";
-
-
-type Olympiad = {
-  id: number;
-  title: string;
-  slug: string;
-  category: string;
-  subjects?: string[];
-  prize?: string;
-  source_url?: string;
-  is_active: boolean;
-  logo_url?: string | null;
-};
-
-const fetchOlympiads = async (): Promise<Olympiad[]> => {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/olympiads/`,
-    { cache: "no-store" }
-  );
-  if (!res.ok) throw new Error("Failed to fetch");
-  return res.json();
-};
+import FiltersPanel from "@/components/filters/FiltersPanel"; // ← добавили только это
+import { useOlympiadsQuery } from "@/hooks/useOlympiadsQuery";
+import type { Olympiad } from "@/types/Olympiad";
 
 const CATEGORIES = [
   { title: "Олимпиады",        slug: "olimpiady",        icon: "olympiady.png" },
@@ -45,28 +25,34 @@ const CATEGORIES = [
 
 export default function Home() {
   const [search, setSearch] = useState("");
-  const { data: olympiads = [] } = useQuery({
-    queryKey: ["olympiads"],
-    queryFn: fetchOlympiads,
-    refetchInterval: 30000,
+  const [panelFilters, setPanelFilters] = useState({
+    subjects: [] as string[],
+    hasPrize: false,
+    deadlineSoon: false,
+    sort: "deadline_asc" as string,
   });
 
-  const filtered = search
-    ? olympiads.filter((o) =>
-        o.title.toLowerCase().includes(search.toLowerCase())
-      )
-    : olympiads;
+  const { data: olympiads = [] } = useOlympiadsQuery({
+    search: search || undefined,
+    subjects: panelFilters.subjects.length ? panelFilters.subjects : undefined,
+    has_prize: panelFilters.hasPrize || undefined,
+    deadline_days: panelFilters.deadlineSoon ? 14 : undefined,
+    sort: panelFilters.sort,
+  });
 
-  const countByCategory = olympiads.reduce((acc, o) => {
-    const cat = o.category || "Олимпиады";
-    acc[cat] = (acc[cat] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+const countByCategory = olympiads.reduce((acc, o) => {
+  const cat = o.category || "Олимпиады";
+  acc[cat] = (acc[cat] || 0) + 1;
+  return acc;
+}, {} as Record<string, number>);
 
   return (
     <div className="min-h-screen relative overflow-x-hidden">
       <Header />
       <div className="fixed inset-0 gradient-bg" />
+      
+      {/* ←←← ВСТАВИЛИ ФИЛЬТР-ПАНЕЛЬ — ВСЁ! */}
+      <FiltersPanel onChange={setPanelFilters} initialFilters={panelFilters} />
 
       <div className="relative z-10">
         {/* Hero */}
@@ -157,5 +143,8 @@ export default function Home() {
         </div>
       </div>
     </div>
+    
   );
+  <Footer />
+
 }

@@ -1,3 +1,4 @@
+// src/types/Olympiad.ts
 export type Olympiad = {
   id: number;
   title: string;
@@ -5,7 +6,7 @@ export type Olympiad = {
   description: string | null;
   organizer: string | null;
   level: string | null;
-  category: string;      // ← добавили
+  category: string;
   subjects: string[];
   is_team: boolean | null;
   start_date: string | null;
@@ -18,5 +19,5 @@ export type Olympiad = {
   parsed_at: string;
   created_at: string;
   updated_at: string;
-  logo_url: string;
+  logo_url: string | null;   // ← ДОБАВИЛИ | null И ЗАПЯТУЮ!
 };
