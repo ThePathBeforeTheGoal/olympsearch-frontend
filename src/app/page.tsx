@@ -114,23 +114,40 @@ export default function Home() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
             {CATEGORIES.map((cat) => (
               <Link key={cat.slug} href={`/category/${cat.slug}`}>
-                <div className="group cursor-pointer bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 hover:border-white/40 hover:bg-white/15 transition-all hover:scale-105">
-                  <div className="p-6 text-center">
-                    <div className="w-20 h-20 mx-auto mb-4 bg-white/20 rounded-2xl flex items-center justify-center overflow-hidden">
-                      <Image
-                        src={`/icons/${cat.icon}`}
-                        alt={cat.title}
-                        width={64}
-                        height={64}
-                        className="object-contain"
-                      />
-                    </div>
-                    <h3 className="text-white font-bold text-lg mb-2">{cat.title}</h3>
-                    <p className="text-white/60 text-sm">
-                      Всего в каталоге: {countByCategory[cat.title] || 0}
-                    </p>
-                  </div>
-                </div>
+tsx<div className="group cursor-pointer bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 hover:border-purple-300/50 hover:bg-white/15 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20">
+  <div className="p-8 text-center">
+
+    <div className="relative mx-auto mb-5 w-24 h-24 group-hover:scale-110 transition-transform duration-500">
+  {/* Внешнее свечение */}
+  <div className="absolute inset-0 rounded-full bg-purple-500/30 blur-2xl scale-0 group-hover:scale-150 transition-transform duration-1000" />
+  
+  {/* Магический круг + обрезка по кругу */}
+  <div className="relative w-24 h-24 rounded-full overflow-hidden ring-4 ring-purple-300/30 ring-offset-4 ring-offset-transparent shadow-2xl">
+    <Image
+      src={`/icons/${cat.icon}`}
+      alt={cat.title}
+      fill
+      sizes="96px"
+      className="object-cover scale-105 transition-transform duration-700 group-hover:scale-110"
+      unoptimized
+    />
+    
+    {/* Перламутровый оверлей сверху */}
+    <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/10 to-purple-300/20 mix-blend-overlay" />
+    
+    {/* Лёгкий блик */}
+    <div className="absolute top-2 left-3 w-8 h-16 bg-white/30 rounded-full blur-xl -rotate-45" />
+  </div>
+</div>
+
+    <h3 className="text-white font-black text-xl mb-2 tracking-tight">
+      {cat.title}
+    </h3>
+    <p className="text-purple-200/80 text-sm font-medium">
+      Всего в каталоге: {countByCategory[cat.title] || 0}
+    </p>
+  </div>
+</div>
               </Link>
             ))}
           </div>
