@@ -75,15 +75,23 @@ export default function Home() {
           <p className="mt-6 text-xl md:text-2xl text-white font-medium opacity-0 animate-fade-up animation-delay-800">
             Олимпиады, хакатоны и мероприятия для студентов РФ
           </p>
-          <div className="flex items-center justify-center mt-10 opacity-0 animate-fade-up animation-delay-1500">
-            <div className="relative w-10 h-10 mr-4">
-              <div className="absolute inset-0 rounded-full border-4 border-t-white/30 border-r-white/30 border-b-white/20 border-l-white/20 animate-spin-slow"></div>
-              <div className="absolute inset-2 rounded-full border-4 border-t-white/60 border-r-transparent border-b-transparent border-l-transparent animate-spin-slow-reverse"></div>
-            </div>
-            <p className="text-lg md:text-xl font-semibold bg-gradient-to-r from-[#eeaef6] via-[#f7e8ff] to-white bg-clip-text text-transparent opacity-0 animate-fade-up animation-delay-1300">
-              Живое обновление & реальные данные
-            </p>
-          </div>
+{/* Hero — адаптивный спиннер только на больших экранах */}
+<div className="hidden md:flex items-center justify-center mt-10 opacity-0 animate-fade-up animation-delay-1500">
+  <div className="relative w-10 h-10 mr-4">
+    <div className="absolute inset-0 rounded-full border-4 border-t-white/30 border-r-white/30 border-b-white/20 border-l-white/20 animate-spin-slow"></div>
+    <div className="absolute inset-2 rounded-full border-4 border-t-white/60 border-r-transparent border-b-transparent border-l-transparent animate-spin-slow-reverse"></div>
+  </div>
+  <p className="text-lg md:text-xl font-semibold bg-gradient-to-r from-[#eeaef6] via-[#f7e8ff] to-white bg-clip-text text-transparent opacity-0 animate-fade-up animation-delay-1300">
+    Живое обновление & реальные данные
+  </p>
+</div>
+
+{/* На мобилке — просто текст, без спиннера */}
+<div className="md:hidden text-center mt-8 opacity-0 animate-fade-up animation-delay-1300">
+  <p className="text-lg font-semibold bg-gradient-to-r from-[#eeaef6] via-[#f7e8ff] to-white bg-clip-text text-transparent">
+    Живое обновление & реальные данные
+  </p>
+</div>
         </div>
 
         {/* Поиск */}
@@ -130,9 +138,9 @@ export default function Home() {
                       </div>
                     </div>
 
-                    <h3 className="text-white font-black text-xl mb-2 tracking-tight">
-                      {cat.title}
-                    </h3>
+<h3 className="text-white font-black text-base sm:text-lg lg:text-xl mb-2 tracking-tight line-clamp-2 px-2">
+  {cat.title}
+</h3>
                     <p className="text-purple-200/80 text-sm font-medium">
                       Всего в каталоге: {countByCategory[cat.title] || 0}
                     </p>
