@@ -4,6 +4,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Filter, ChevronLeft } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { fetchWithAuth } from "@/lib/apiClient";
+
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
