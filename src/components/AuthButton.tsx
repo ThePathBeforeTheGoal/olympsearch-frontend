@@ -1,4 +1,4 @@
-// src/components/AuthButton.tsx — С ЛОГАМИ ДЛЯ ДЕБАГА
+// src/components/AuthButton.tsx
 "use client";
 
 import React from "react";
