@@ -5,24 +5,11 @@ import Image from "next/image";
 import { useState } from "react";
 import Header from "@/components/Header";
 import Link from "next/link";
-import Footer from "@/components/Footer";
 import FiltersPanel from "@/components/filters/FiltersPanel";
 import { useOlympiadsQuery } from "@/hooks/useOlympiadsQuery";
+import { useCategories } from "@/hooks/useCategories";
 import type { Olympiad } from "@/types/Olympiad";
-
-// ← Твои старые красивые категории с иконками (как ты и хотела!)
-const CATEGORIES = [
-  { title: "Олимпиады", slug: "olimpiady", icon: "olympiady.png" },
-  { title: "Конкурсы", slug: "konkursy", icon: "konkursy.png" },
-  { title: "Хакатоны", slug: "hakatony", icon: "hakatony.png" },
-  { title: "Челленджи", slug: "challenges", icon: "challenges.png" },
-  { title: "Кейс-чемпионаты", slug: "keys-chempionaty", icon: "keys.png" },
-  { title: "Акселераторы", slug: "akseleratory", icon: "akseleratory.png" },
-  { title: "Конференции", slug: "konferentsii", icon: "konferentsii.png" },
-  { title: "Стажировки", slug: "stazhirovki", icon: "stazhirovki.png" },
-  { title: "Гранты", slug: "granty", icon: "granty.png" },
-  { title: "Мастер-классы", slug: "master-klassy", icon: "masterklassy.png" },
-];
+import type { Category } from "@/types/Category";
 
 export default function Home() {
   const [search, setSearch] = useState("");
@@ -41,14 +28,12 @@ export default function Home() {
     sort: panelFilters.sort,
   });
 
-  // Считаем количество олимпиад по названию категории (как было раньше)
+  const { data: categories = [], isLoading: catsLoading } = useCategories();
+
+  // Точный счётчик по category_id
   const countByCategory = olympiads.reduce((acc, o) => {
-    // Ищем совпадение по точному названию категории
-    const matchedCategory = CATEGORIES.find(cat => 
-      o.title.toLowerCase().includes(cat.title.toLowerCase()) ||
-      cat.title.toLowerCase().includes("олимпиад") && o.title.toLowerCase().includes("олимпиад")
-    );
-    const title = matchedCategory?.title || "Другое";
+    const cat = categories.find(c => c.id === o.category_id);
+    const title = cat?.title || "Другое";
     acc[title] = (acc[title] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
@@ -62,7 +47,7 @@ export default function Home() {
       <FiltersPanel onChange={setPanelFilters} initialFilters={panelFilters} />
 
       <div className="relative z-10">
-        {/* Hero — без изменений */}
+        {/* Hero */}
         <div className="relative z-100 text-center pt-16 pb-14 px-4">
           <h1 className="text-5xl md:text-7xl font-black bg-gradient-to-r from-[#eeaef6] via-[#e7d8ff] to-white bg-clip-text text-transparent tracking-tight">
             OlympSearch
@@ -70,7 +55,7 @@ export default function Home() {
           <p className="mt-6 text-xl md:text-2xl text-white font-medium opacity-0 animate-fade-up animation-delay-800">
             Олимпиады, хакатоны и мероприятия для студентов РФ
           </p>
-
+          {/* Спиннеры и текст */}
           <div className="hidden md:flex items-center justify-center mt-10 opacity-0 animate-fade-up animation-delay-1500">
             <div className="relative w-10 h-10 mr-4">
               <div className="absolute inset-0 rounded-full border-4 border-t-white/30 border-r-white/30 border-b-white/20 border-l-white/20 animate-spin-slow"></div>
@@ -105,40 +90,53 @@ export default function Home() {
           <p className="text-white/70 italic text-lg">Выберите категорию</p>
         </div>
 
-        {/* ← ВЕРНУЛИ ТВОИ КРАСИВЫЕ КАТЕГОРИИ С ИКОНКАМИ! */}
+        {/* Категории из БД */}
         <div className="max-w-7xl mx-auto px-4 mb-16">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
-            {CATEGORIES.map((cat) => (
-              <Link key={cat.slug} href={`/category/${cat.slug}`}>
-                <div className="group cursor-pointer bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 hover:border-purple-300/50 hover:bg-white/15 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20">
-                  <div className="p-4 sm:p-6 lg:p-8 text-center flex flex-col items-center justify-center h-full">
-                    <div className="relative mb-3 sm:mb-5 w-16 h-16 sm:w-20 lg:w-24 sm:h-20 lg:h-24 group-hover:scale-110 transition-transform duration-500">
-                      <div className="absolute inset-0 rounded-full bg-purple-500/30 blur-2xl scale-0 group-hover:scale-150 transition-transform duration-1000" />
-                      <div className="relative w-full h-full rounded-full overflow-hidden ring-4 ring-purple-300/30 ring-offset-4 ring-offset-transparent shadow-2xl">
-                        <Image
-                          src={`/icons/${cat.icon}`}
-                          alt={cat.title}
-                          fill
-                          sizes="(max-width: 640px) 64px, (max-width: 1024px) 80px, 96px"
-                          className="object-cover scale-105 transition-transform duration-700 group-hover:scale-110"
-                          unoptimized
-                        />
-                        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/10 to-purple-300/20 mix-blend-overlay" />
+          {catsLoading ? (
+            <div className="text-center text-white/70">Загрузка категорий...</div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
+              {categories
+                .filter(c => c.is_active)
+                .sort((a, b) => a.sort_order - b.sort_order)
+                .map((cat) => (
+                  <Link key={cat.id} href={`/category/${cat.slug}`}>
+                    <div className="group cursor-pointer bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 hover:border-purple-300/50 hover:bg-white/15 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20">
+                      <div className="p-4 sm:p-6 lg:p-8 text-center flex flex-col items-center justify-center h-full">
+                        <div className="relative mb-3 sm:mb-5 w-16 h-16 sm:w-20 lg:w-24 sm:h-20 lg:h-24 group-hover:scale-110 transition-transform duration-500">
+                          <div className="absolute inset-0 rounded-full bg-purple-500/30 blur-2xl scale-0 group-hover:scale-150 transition-transform duration-1000" />
+                          <div className="relative w-full h-full rounded-full overflow-hidden ring-4 ring-purple-300/30 ring-offset-4 ring-offset-transparent shadow-2xl">
+                            {cat.icon ? (
+                              <Image
+                                src={`/icons/${cat.icon}`}
+                                alt={cat.title}
+                                fill
+                                sizes="(max-width: 640px) 64px, (max-width: 1024px) 80px, 96px"
+                                className="object-cover scale-105 transition-transform duration-700 group-hover:scale-110"
+                                unoptimized
+                              />
+                            ) : (
+                              <div className="bg-white/20 flex items-center justify-center text-white text-2xl font-bold">
+                                {cat.title[0]}
+                              </div>
+                            )}
+                            <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/10 to-purple-300/20 mix-blend-overlay" />
+                          </div>
+                        </div>
+
+                        <h3 className="text-white font-black text-sm sm:text-base lg:text-xl mb-1 leading-tight px-2">
+                          {cat.title}
+                        </h3>
+
+                        <p className="text-purple-200/80 text-xs sm:text-sm font-medium">
+                          Всего: {countByCategory[cat.title] || 0}
+                        </p>
                       </div>
                     </div>
-
-                    <h3 className="text-white font-black text-sm sm:text-base lg:text-xl mb-1 leading-tight px-2">
-                      {cat.title}
-                    </h3>
-
-                    <p className="text-purple-200/80 text-xs sm:text-sm font-medium">
-                      Всего: {countByCategory[cat.title] || 0}
-                    </p>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+                  </Link>
+                ))}
+            </div>
+          )}
         </div>
       </div>
 
