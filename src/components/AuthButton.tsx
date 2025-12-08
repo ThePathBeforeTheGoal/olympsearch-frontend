@@ -54,7 +54,7 @@ export default function AuthButton() {
   return (
     <>
       <button
-        onClick={() => setOpen(true)}  // ← открываем модалку
+        onClick={() => setOpen((prev) => !prev)}  // ← открываем модалку
         className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
         aria-label="Войти"
       >

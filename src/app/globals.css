@@ -198,3 +198,13 @@ input::placeholder {
 .animate-fade-up { animation: fade-up 0.9s ease-out forwards; }
 .animation-delay-1000 { animation-delay: 1000ms; }
 .animation-delay-1500 { animation-delay: 1500ms; }
+
+
+.gradient-bg, .gradient-bg::before, .gradient-bg::after {
+  pointer-events: none;
+  z-index: -1 !important;
+}
+
+header {
+  pointer-events: auto !important;
+}
