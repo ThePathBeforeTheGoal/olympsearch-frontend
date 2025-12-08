@@ -1,8 +1,9 @@
+// src/app/page.tsx
 "use client";
 
 import { Search } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Header from "@/components/Header";
 import Link from "next/link";
 import FiltersPanel from "@/components/filters/FiltersPanel";
@@ -10,6 +11,19 @@ import { useOlympiadsQuery } from "@/hooks/useOlympiadsQuery";
 import { useCategories } from "@/hooks/useCategories";
 import type { Olympiad } from "@/types/Olympiad";
 import type { Category } from "@/types/Category";
+
+const CATEGORIES = [
+  { title: "Олимпиады", slug: "olimpiady", icon: "olimpiady.png" },
+  { title: "Конкурсы", slug: "konkursy", icon: "konkursy.png" },
+  { title: "Хакатоны", slug: "hakatony", icon: "hakatony.png" },
+  { title: "Челленджи", slug: "challenges", icon: "challenges.png" },
+  { title: "Кейс-чемпионаты", slug: "keys-chempionaty", icon: "keys.png" },
+  { title: "Акселераторы", slug: "akseleratory", icon: "akseleratory.png" },
+  { title: "Конференции", slug: "konferentsii", icon: "konferentsii.png" },
+  { title: "Стажировки", slug: "stazhirovki", icon: "stazhirovki.png" },
+  { title: "Гранты", slug: "granty", icon: "granty.png" },
+  { title: "Мастер-классы", slug: "master-klassy", icon: "masterklassy.png" },
+];
 
 export default function Home() {
   const [search, setSearch] = useState("");
@@ -30,10 +44,41 @@ export default function Home() {
 
   const { data: categories = [], isLoading: catsLoading } = useCategories();
 
-  // Точный счётчик по category_id
+  // Если БД пуста — используем статический список (сделаем его в формате Category)
+  const finalCategories: Category[] = useMemo(() => {
+    if (categories && categories.length > 0) return categories;
+    return CATEGORIES.map((c, i) => ({
+      id: 10000 + i, // временный id для рендера
+      title: c.title,
+      slug: c.slug,
+      icon: c.icon,
+      description: null,
+      sort_order: i,
+      is_active: true,
+    }));
+  }, [categories]);
+
+  // Счётчик по категориям: ищем совпадение по category_id -> title; если нет, смотрим поле o.category (на случай старых данных)
   const countByCategory = olympiads.reduce((acc, o) => {
-    const cat = categories.find(c => c.id === o.category_id);
-    const title = cat?.title || "Другое";
+    // пытаемся найти категорию объектом: ищем category в finalCategories по id или по slug/title
+    let title = "Другое";
+
+    // prefer category_id -> find by id (если backend отдаёт category_id)
+    if (typeof (o as any).category_id === "number") {
+      const cat = finalCategories.find((c) => c.id === (o as any).category_id);
+      if (cat) title = cat.title;
+    }
+
+    // fallback: если olympiad содержит строковое поле category
+    if (title === "Другое" && (o as any).category) {
+      const catFromField = finalCategories.find(
+        (c) => c.slug === String((o as any).category).toString() || c.title === (o as any).category
+      );
+      if (catFromField) title = catFromField.title;
+      else title = String((o as any).category);
+    }
+
+    // last fallback: если категории всё ещё не определили — оставим "Другое"
     acc[title] = (acc[title] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
@@ -42,7 +87,7 @@ export default function Home() {
     <div className="min-h-screen relative overflow-x-hidden">
       {/* ФОН */}
       <div className="fixed inset-0 gradient-bg pointer-events-none -z-10" />
-      
+
       <Header />
       <FiltersPanel onChange={setPanelFilters} initialFilters={panelFilters} />
 
@@ -55,7 +100,7 @@ export default function Home() {
           <p className="mt-6 text-xl md:text-2xl text-white font-medium opacity-0 animate-fade-up animation-delay-800">
             Олимпиады, хакатоны и мероприятия для студентов РФ
           </p>
-          {/* Спиннеры и текст */}
+
           <div className="hidden md:flex items-center justify-center mt-10 opacity-0 animate-fade-up animation-delay-1500">
             <div className="relative w-10 h-10 mr-4">
               <div className="absolute inset-0 rounded-full border-4 border-t-white/30 border-r-white/30 border-b-white/20 border-l-white/20 animate-spin-slow"></div>
@@ -65,6 +110,7 @@ export default function Home() {
               Живое обновление & реальные данные
             </p>
           </div>
+
           <div className="md:hidden text-center mt-8 opacity-0 animate-fade-up animation-delay-1300">
             <p className="text-lg font-semibold bg-gradient-to-r from-[#eeaef6] via-[#f7e8ff] to-white bg-clip-text text-transparent">
               Живое обновление & реальные данные
@@ -90,15 +136,15 @@ export default function Home() {
           <p className="text-white/70 italic text-lg">Выберите категорию</p>
         </div>
 
-        {/* Категории из БД */}
+        {/* Категории (из БД или статические) */}
         <div className="max-w-7xl mx-auto px-4 mb-16">
           {catsLoading ? (
             <div className="text-center text-white/70">Загрузка категорий...</div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
-              {categories
-                .filter(c => c.is_active)
-                .sort((a, b) => a.sort_order - b.sort_order)
+              {finalCategories
+                .filter((c) => c.is_active)
+                .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
                 .map((cat) => (
                   <Link key={cat.id} href={`/category/${cat.slug}`}>
                     <div className="group cursor-pointer bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 hover:border-purple-300/50 hover:bg-white/15 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20">
@@ -139,8 +185,6 @@ export default function Home() {
           )}
         </div>
       </div>
-
-      {/* Футер теперь только в layout.tsx — здесь его НЕТ */}
     </div>
   );
 }

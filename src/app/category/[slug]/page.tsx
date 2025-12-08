@@ -5,8 +5,6 @@ import { Search, Link2 } from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import Header from "@/components/Header";
-import { useCategories } from "@/hooks/useCategories";
-import OlympiadCard from "@/components/OlympiadCard";
 import type { Olympiad } from "@/types/Olympiad";
 import { useState } from "react";
 
@@ -17,19 +15,13 @@ export default function CategoryPage() {
   const router = useRouter();
   const [search, setSearch] = useState("");
 
-  const { data: categories = [] } = useCategories();
-
-  const category = categories.find(c => c.slug === slug);
-
   const { data: olympiads = [], isLoading } = useQuery<Olympiad[]>({
     queryKey: ["olympiads", "category", slug],
     queryFn: async () => {
-      if (!category) return [];
-      const res = await fetch(`${API_URL}/api/v1/olympiads/filter?category_id=${category.id}`);
+      const res = await fetch(`${API_URL}/api/v1/olympiads/filter?category=${slug}`);
       if (!res.ok) return [];
       return res.json();
     },
-    enabled: !!category,
   });
 
   const filtered = olympiads.filter(o =>
@@ -41,7 +33,9 @@ export default function CategoryPage() {
     router.push(`/olympiad/${filtered[0].slug}`);
   }
 
-  const categoryTitle = category?.title || slug;
+  const categoryTitle = olympiads[0]
+    ? olympiads[0].category_id // можно будет потом джойнить с categories
+    : slug;
 
   return (
     <div className="min-h-screen relative overflow-x-hidden">
@@ -84,7 +78,47 @@ export default function CategoryPage() {
                     className="opacity-0 animate-fade-up"
                     style={{ animationDelay: `${i * 50 + 400}ms`, animationFillMode: "forwards" }}
                   >
-                    <OlympiadCard item={o} />
+                    <div className="glass-card p-6 h-96 flex flex-col">
+                      {/* Логотип организатора — потом будем джойнить */}
+                      {o.logo_url ? (
+                        <div className="relative w-full h-32 mb-5 bg-white/10 rounded-xl overflow-hidden border border-white/20">
+                          <Image src={o.logo_url} alt={o.title} fill sizes="25vw" className="object-contain p-4" unoptimized />
+                        </div>
+                      ) : (
+                        <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-32 mb-5 flex items-center justify-center text-gray-500 text-sm">
+                          Логотип
+                        </div>
+                      )}
+
+                      <div className="flex-1 overflow-hidden">
+                        <h3 className="text-xl font-bold text-center mb-3 line-clamp-2">{o.title}</h3>
+
+                        {o.subjects?.length > 0 && (
+                          <div className="flex flex-wrap gap-2 justify-center mb-4">
+                            {o.subjects.slice(0, 4).map((s, idx) => (
+                              <span key={idx} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                                {s}
+                              </span>
+                            ))}
+                            {o.subjects.length > 4 && <span className="text-xs text-gray-600">+{o.subjects.length - 4}</span>}
+                          </div>
+                        )}
+
+                        {o.prize && <p className="text-center text-sm text-gray-700 line-clamp-2 mt-3">{o.prize}</p>}
+                      </div>
+
+                      <div className="mt-6 pt-4 border-t border-gray-200">
+                        <a
+                          href={o.source_url || "#"}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center gap-2 text-blue-600 hover:text-blue-800 text-sm font-medium transition"
+                        >
+                          <Link2 className="w-4 h-4" />
+                          Перейти на сайт
+                        </a>
+                      </div>
+                    </div>
                   </div>
                 ))}
           </div>
