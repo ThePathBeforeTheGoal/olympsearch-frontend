@@ -40,13 +40,26 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(
-    circle at 20% 20%,
-    rgba(255, 255, 255, 0.08) 0%,
-    rgba(255, 255, 255, 0) 30%
-  );
+  pointer-events: none !important;   /* ← ЭТО САМОЕ ГЛАВНОЕ */
+  z-index: 4;
+  background:
+    linear-gradient(
+      120deg,
+      rgba(255,255,255,0.02),
+      rgba(255,255,255,0.00)
+    );
   mix-blend-mode: overlay;
-  animation: pearl-wave 15s ease-in-out infinite reverse;
+  opacity: 0.15;
+  transform: translateX(0);
+  animation: pearl-wave-slow var(--pearl-wave-speed) ease-in-out infinite reverse;
+  filter: blur(90px);
+  will-change: transform, opacity;
+}
+
+.gradient-bg,
+.gradient-bg::before,
+.gradient-bg::after {
+  pointer-events: none !important;
 }
 
 /* --- Медленная лиловая волна поверх перламутра --- */
