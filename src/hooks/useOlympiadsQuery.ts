@@ -2,7 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import type { Olympiad } from "@/types/Olympiad";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://olympsearch-api.onrender.com";
 
 type Filters = {
   search?: string;
@@ -34,7 +34,7 @@ export const useOlympiadsQuery = (filters: Filters = {}) => {
       if (filters.sort) params.append("sort", filters.sort);
       if (filters.category) params.append("category", filters.category);
 
-      const url = `${API_BASE}/api/v1/olympiads/filter?${params.toString()}`;
+      const url = `${API_URL}/api/v1/olympiads/filter?${params.toString()}`;
       const res = await fetch(url, { cache: "no-store" });
       if (!res.ok) throw new Error("Failed to fetch olympiads");
       return res.json();

@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchWithAuth } from "@/lib/apiClient";
 
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://olympsearch-api.onrender.com";
 
 type Filters = {
   subjects: string[];
@@ -43,7 +43,7 @@ export default function FiltersPanel({
   const { data: availableSubjects = [] } = useQuery<string[]>({
     queryKey: ["subjects"],
     queryFn: async () => {
-      const res = await fetch(`${BASE_URL}/api/v1/olympiads/subjects`);
+      const res = await fetch(`${API_URL}/api/v1/olympiads/subjects`);
       if (!res.ok) return [];
       return res.json();
     },

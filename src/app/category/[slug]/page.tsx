@@ -8,7 +8,7 @@ import Header from "@/components/Header";
 import type { Olympiad } from "@/types/Olympiad";
 import { useState } from "react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://olympsearch-api.onrender.com";
 
 export default function CategoryPage() {
   const { slug } = useParams() as { slug: string };

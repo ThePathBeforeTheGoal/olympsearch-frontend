@@ -15,6 +15,7 @@ export type SupabaseUser = {
   [key: string]: any;
 };
 
+
 export type SupabaseSession = {
   access_token: string;
   token_type: string;
