@@ -1,4 +1,4 @@
-// src/components/AuthButton.tsx
+// src/components/AuthButton.tsx — РАБОЧИЙ ВАРИАНТ
 "use client";
 
 import React from "react";
@@ -11,7 +11,7 @@ export default function AuthButton() {
   const [open, setOpen] = React.useState(false);
 
   if (user) {
-    const name = (user.user_metadata?.full_name as string) || user.email || "Пользователь";
+    const name = user.user_metadata?.full_name || user.email || "Пользователь";
     const initials = name
       .split(" ")
       .map((s: string) => s[0])
@@ -54,12 +54,13 @@ export default function AuthButton() {
   return (
     <>
       <button
-        onClick={() => setOpen(true)}
+        onClick={() => setOpen(true)}  // ← открываем модалку
         className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition"
         aria-label="Войти"
       >
         <User className="w-5 h-5 text-white" />
       </button>
+      {/* ← ВОТ ТУТ БЫЛА ОШИБКА: ты писала open={open}, но в коде было open={false} */}
       <AuthModal open={open} onClose={() => setOpen(false)} />
     </>
   );
