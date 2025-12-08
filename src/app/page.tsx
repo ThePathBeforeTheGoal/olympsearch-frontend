@@ -140,9 +140,6 @@ export default function Home() {
           )}
         </div>
       </div>
-
-      {/* FOOTER — ТОЛЬКО ОДИН РАЗ! */}
-      <Footer />
     </div>
   );
 }
