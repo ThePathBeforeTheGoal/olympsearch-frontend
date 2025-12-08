@@ -40,8 +40,10 @@ export default function Home() {
 
   return (
     <div className="min-h-screen relative overflow-x-hidden">
+      {/* ФОН */}
+      <div className="fixed inset-0 gradient-bg pointer-events-none -z-10" />
+      
       <Header />
-      <div className="fixed inset-0 gradient-bg" />
       <FiltersPanel onChange={setPanelFilters} initialFilters={panelFilters} />
 
       <div className="relative z-10">
@@ -54,7 +56,7 @@ export default function Home() {
             Олимпиады, хакатоны и мероприятия для студентов РФ
           </p>
 
-          {/* Спиннеры и текст — оставляем как было */}
+          {/* Спиннеры и текст */}
           <div className="hidden md:flex items-center justify-center mt-10 opacity-0 animate-fade-up animation-delay-1500">
             <div className="relative w-10 h-10 mr-4">
               <div className="absolute inset-0 rounded-full border-4 border-t-white/30 border-r-white/30 border-b-white/20 border-l-white/20 animate-spin-slow"></div>
@@ -138,6 +140,8 @@ export default function Home() {
           )}
         </div>
       </div>
+
+      {/* FOOTER — ТОЛЬКО ОДИН РАЗ! */}
       <Footer />
     </div>
   );
