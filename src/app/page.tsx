@@ -11,7 +11,6 @@ import { useCategories } from "@/hooks/useCategories";
 import type { Olympiad } from "@/types/Olympiad";
 import type { Category } from "@/types/Category";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://olympsearch-api.onrender.com";
 
 const CATEGORIES = [
   { title: "Олимпиады", slug: "olimpiady", icon: "olympiady.png" },
@@ -26,20 +25,6 @@ const CATEGORIES = [
   { title: "Мастер-классы", slug: "master-klassy", icon: "masterklassy.png" },
 ];
 
-// Маппинг slug → id для подсчета
-const CATEGORY_MAP: Record<string, number> = {
-  'olimpiady': 1,
-  'konkursy': 2,
-  'hakatony': 3,
-  'challenges': 4,
-  'keys-chempionaty': 5,
-  'akseleratory': 6,
-  'konferentsii': 7,
-  'stazhirovki': 8,
-  'granty': 9,
-  'master-klassy': 10,
-};
-
 export default function Home() {
   const [search, setSearch] = useState("");
   const [panelFilters, setPanelFilters] = useState({
@@ -49,7 +34,6 @@ export default function Home() {
     sort: "deadline_asc" as string,
   });
 
-  // Получаем все олимпиады (без фильтров по категории)
   const { data: olympiads = [] } = useOlympiadsQuery({
     search: search || undefined,
     subjects: panelFilters.subjects.length ? panelFilters.subjects : undefined,
@@ -64,7 +48,7 @@ export default function Home() {
   const finalCategories: Category[] = useMemo(() => {
     if (categories && categories.length > 0) return categories;
     return CATEGORIES.map((c, i) => ({
-      id: CATEGORY_MAP[c.slug] || (10000 + i),
+      id: 10000 + i,
       title: c.title,
       slug: c.slug,
       icon: c.icon,
@@ -74,25 +58,28 @@ export default function Home() {
     }));
   }, [categories]);
 
-  // Правильный подсчет по категориям
-  const countByCategory = useMemo(() => {
-    const counts: Record<string, number> = {};
-    
-    // Инициализируем все категории с 0
-    finalCategories.forEach(cat => {
-      counts[cat.title] = 0;
-    });
-    
-    // Считаем олимпиады по category_id
-    olympiads.forEach(o => {
-      const category = finalCategories.find(c => c.id === o.category_id);
-      if (category) {
-        counts[category.title] = (counts[category.title] || 0) + 1;
-      }
-    });
-    
-    return counts;
-  }, [olympiads, finalCategories]);
+  // Счётчик по категориям
+  const countByCategory = olympiads.reduce((acc, o) => {
+    let title = "Другое";
+
+    // prefer numeric category_id
+    if (typeof (o as any).category_id === "number") {
+      const cat = finalCategories.find((c) => c.id === (o as any).category_id);
+      if (cat) title = cat.title;
+    }
+
+    // fallback: строковое поле category (старые данные)
+    if (title === "Другое" && (o as any).category) {
+      const catFromField = finalCategories.find(
+        (c) => c.slug === String((o as any).category) || c.title === (o as any).category
+      );
+      if (catFromField) title = catFromField.title;
+      else title = String((o as any).category);
+    }
+
+    acc[title] = (acc[title] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
 
   return (
     <div className="min-h-screen relative overflow-x-hidden">
@@ -162,6 +149,7 @@ export default function Home() {
                     href={`/category/${encodeURIComponent(cat.slug)}`}
                     className="group"
                   >
+                    {/* Внутри Link — НЕ использовать <a>. Просто div/вложенные элементы */}
                     <div className="group cursor-pointer bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 hover:border-purple-300/50 hover:bg-white/15 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20">
                       <div className="p-4 sm:p-6 lg:p-8 text-center flex flex-col items-center justify-center h-full">
                         <div className="relative mb-3 sm:mb-5 w-16 h-16 sm:w-20 lg:w-24 sm:h-20 lg:h-24 group-hover:scale-110 transition-transform duration-500">
