@@ -33,23 +33,22 @@ export default function CategoryPage() {
 
   const { data: olympiads = [], isLoading } = useQuery<Olympiad[]>({
     queryKey,
+    enabled: !catsLoading, // Ждём реальные categories от бекенда
     queryFn: async () => {
-      // 1) сначала пробуем by slug (api поддерживает filter?category=<slug>)
+      // 1) попытка по slug
       const bySlugUrl = `${API_URL}/api/v1/olympiads/filter?category=${encodeURIComponent(slug)}`;
       try {
         const r1 = await fetch(bySlugUrl, { cache: "no-store" });
         if (r1.ok) {
           const json = await r1.json();
           if (Array.isArray(json) && json.length > 0) return json as Olympiad[];
-          // если пустой массив — попробуем fallback ниже
         }
       } catch (e) {
-        // сетевые ошибки — идём дальше, попробуем fallback
+        // continue
       }
 
-      // 2) fallback: если у нас есть numeric category_id — пробуем запрос по id
-      if (currentCategory?.id) {
-        // некоторые бекенды ожидают параметр category_id или categoryId — сначала пробуем category_id
+      // 2) если есть реальная категория (из бекенда), пробуем по её id
+      if (!catsLoading && currentCategory?.id) {
         const tryUrls = [
           `${API_URL}/api/v1/olympiads/filter?category_id=${currentCategory.id}`,
           `${API_URL}/api/v1/olympiads/filter?category=${currentCategory.id}`,
@@ -59,25 +58,22 @@ export default function CategoryPage() {
             const r = await fetch(u, { cache: "no-store" });
             if (r.ok) {
               const json = await r.json();
-              if (Array.isArray(json)) return json as Olympiad[];
+              if (Array.isArray(json) && json.length > 0) return json as Olympiad[];
             }
-          } catch (_) {
-            // ignore and continue
-          }
+          } catch (_) {}
         }
       }
 
-      // 3) окончательный fallback: попробуем без фильтра (возможно показать хотя бы что-то)
+      // 3) окончательный fallback: загрузим все и отфильтруем локально только если у нас реальная категория
       try {
         const rAll = await fetch(`${API_URL}/api/v1/olympiads/?limit=100`, { cache: "no-store" });
         if (rAll.ok) {
           const json = await rAll.json();
           if (Array.isArray(json)) {
-            // отфильтруем локально по slug/title/category на случай несовпадений
             return (json as Olympiad[]).filter((o) => {
-              // если есть category_id — сопоставляем с currentCategory.id
-              if (currentCategory?.id && typeof o.category_id === "number") return o.category_id === currentCategory.id;
-              // или если у олимпиад есть строковое поле category — сравним slug/title
+              if (!catsLoading && currentCategory?.id && typeof o.category_id === "number") {
+                return o.category_id === currentCategory.id;
+              }
               if ((o as any).category) {
                 const c = String((o as any).category).toLowerCase();
                 return c === slug.toLowerCase() || c === currentCategory?.title?.toLowerCase();
@@ -86,14 +82,11 @@ export default function CategoryPage() {
             });
           }
         }
-      } catch (e) {
-        // nothing
-      }
+      } catch (e) {}
 
-      // если всё упало — вернём пустой массив
       return [];
     },
-    staleTime: 1000 * 30, // 30s
+    staleTime: 1000 * 30,
     refetchOnWindowFocus: false,
   });
 

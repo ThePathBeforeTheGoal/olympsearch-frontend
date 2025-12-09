@@ -1,4 +1,3 @@
-// src/hooks/useCategories.ts
 import { useQuery } from "@tanstack/react-query";
 import type { Category } from "@/types/Category";
 
@@ -26,18 +25,18 @@ export const useCategories = () => {
       try {
         const res = await fetch(`${API_URL}/api/v1/categories`, { signal: controller.signal });
         if (!res.ok) {
-          // upstream temporarily failing — fall back to local list
-          return FALLBACK;
+          // upstream temporarily failing — return empty array (do not use FALLBACK ids)
+          return [];
         }
         return (await res.json()) as Category[];
       } catch (err) {
-        // network error / timeout — return fallback so UI stays responsive
-        return FALLBACK;
+        // network error / timeout — return empty array
+        return [];
       } finally {
         clearTimeout(timer);
       }
     },
-    initialData: FALLBACK,
+    initialData: [],            // <<< changed: don't inject fake IDs that ломают маппинг
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
   });
