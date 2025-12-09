@@ -23,9 +23,7 @@ export const useOlympiadsQuery = (filters: Filters = {}) => {
       const params = new URLSearchParams();
 
       if (filters.search) params.append("q", filters.search);
-      if (filters.subjects?.length) {
-        filters.subjects.forEach((s) => params.append("subjects", s));
-      }
+      if (filters.subjects?.length) filters.subjects.forEach((s) => params.append("subjects", s));
       if (filters.level) params.append("level", filters.level);
       if (filters.prize_min) params.append("prize_min", filters.prize_min.toString());
       if (filters.is_team !== undefined) params.append("is_team", String(filters.is_team));
@@ -36,7 +34,10 @@ export const useOlympiadsQuery = (filters: Filters = {}) => {
 
       const url = `${API_URL}/api/v1/olympiads/filter?${params.toString()}`;
       const res = await fetch(url, { cache: "no-store" });
-      if (!res.ok) throw new Error("Failed to fetch olympiads");
+      if (!res.ok) {
+        // если 422 / другая валидация — возвращаем пустой массив, не ломаем UI
+        return [];
+      }
       return res.json();
     },
     refetchInterval: 60000,

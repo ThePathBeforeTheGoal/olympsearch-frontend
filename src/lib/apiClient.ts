@@ -1,7 +1,7 @@
 // src/lib/apiClient.ts
 import { supabase } from "@/lib/supabaseClient";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://olympsearch-api.onrender.com";
 
 export async function fetchWithAuth(path: string, init?: RequestInit) {
   const res = await supabase.auth.getSession();
@@ -14,7 +14,7 @@ export async function fetchWithAuth(path: string, init?: RequestInit) {
     headers.set("Content-Type", "application/json");
   }
 
-  const url = path.startsWith("http") ? path : `${API_BASE}${path.startsWith("/") ? path : "/" + path}`;
+  const url = path.startsWith("http") ? path : `${API_URL}${path.startsWith("/") ? path : "/" + path}`;
 
   return fetch(url, {
     ...init,
