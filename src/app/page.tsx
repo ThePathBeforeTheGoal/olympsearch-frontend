@@ -1,4 +1,3 @@
-// src/app/page.tsx
 "use client";
 
 import { Search } from "lucide-react";
@@ -144,41 +143,44 @@ export default function Home() {
                 .filter((c) => c.is_active)
                 .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
                 .map((cat) => (
-                  <Link key={cat.id} href={`/category/${encodeURIComponent(cat.slug)}`}>
-                    <a className="group">
-                      <div className="group cursor-pointer bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 hover:border-purple-300/50 hover:bg-white/15 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20">
-                        <div className="p-4 sm:p-6 lg:p-8 text-center flex flex-col items-center justify-center h-full">
-                          <div className="relative mb-3 sm:mb-5 w-16 h-16 sm:w-20 lg:w-24 sm:h-20 lg:h-24 group-hover:scale-110 transition-transform duration-500">
-                            <div className="absolute inset-0 rounded-full bg-purple-500/30 blur-2xl scale-0 group-hover:scale-150 transition-transform duration-1000" />
-                            <div className="relative w-full h-full rounded-full overflow-hidden ring-4 ring-purple-300/30 ring-offset-4 ring-offset-transparent shadow-2xl">
-                              {cat.icon ? (
-                                <Image
-                                  src={`/icons/${cat.icon}`}
-                                  alt={cat.title}
-                                  fill
-                                  sizes="(max-width: 640px) 64px, (max-width: 1024px) 80px, 96px"
-                                  className="object-cover scale-105 transition-transform duration-700 group-hover:scale-110"
-                                  unoptimized
-                                />
-                              ) : (
-                                <div className="bg-white/20 flex items-center justify-center text-white text-2xl font-bold">
-                                  {cat.title[0]}
-                                </div>
-                              )}
-                              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/10 to-purple-300/20 mix-blend-overlay" />
-                            </div>
+                  <Link
+                    key={cat.id}
+                    href={`/category/${encodeURIComponent(cat.slug)}`}
+                    className="group"
+                  >
+                    {/* Внутри Link — НЕ использовать <a>. Просто div/вложенные элементы */}
+                    <div className="group cursor-pointer bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 hover:border-purple-300/50 hover:bg-white/15 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20">
+                      <div className="p-4 sm:p-6 lg:p-8 text-center flex flex-col items-center justify-center h-full">
+                        <div className="relative mb-3 sm:mb-5 w-16 h-16 sm:w-20 lg:w-24 sm:h-20 lg:h-24 group-hover:scale-110 transition-transform duration-500">
+                          <div className="absolute inset-0 rounded-full bg-purple-500/30 blur-2xl scale-0 group-hover:scale-150 transition-transform duration-1000" />
+                          <div className="relative w-full h-full rounded-full overflow-hidden ring-4 ring-purple-300/30 ring-offset-4 ring-offset-transparent shadow-2xl">
+                            {cat.icon ? (
+                              <Image
+                                src={`/icons/${cat.icon}`}
+                                alt={cat.title}
+                                fill
+                                sizes="(max-width: 640px) 64px, (max-width: 1024px) 80px, 96px"
+                                className="object-cover scale-105 transition-transform duration-700 group-hover:scale-110"
+                                unoptimized
+                              />
+                            ) : (
+                              <div className="bg-white/20 flex items-center justify-center text-white text-2xl font-bold">
+                                {cat.title[0]}
+                              </div>
+                            )}
+                            <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/10 to-purple-300/20 mix-blend-overlay" />
                           </div>
-
-                          <h3 className="text-white font-black text-sm sm:text-base lg:text-xl mb-1 leading-tight px-2">
-                            {cat.title}
-                          </h3>
-
-                          <p className="text-purple-200/80 text-xs sm:text-sm font-medium">
-                            Всего: {countByCategory[cat.title] || 0}
-                          </p>
                         </div>
+
+                        <h3 className="text-white font-black text-sm sm:text-base lg:text-xl mb-1 leading-tight px-2">
+                          {cat.title}
+                        </h3>
+
+                        <p className="text-purple-200/80 text-xs sm:text-sm font-medium">
+                          Всего: {countByCategory[cat.title] || 0}
+                        </p>
                       </div>
-                    </a>
+                    </div>
                   </Link>
                 ))}
             </div>
