@@ -11,19 +11,61 @@ import { useCategories } from "@/hooks/useCategories";
 import type { Olympiad } from "@/types/Olympiad";
 import type { Category } from "@/types/Category";
 
-
-const CATEGORIES = [
-  { title: "Олимпиады", slug: "olimpiady", icon: "olympiady.png" },
-  { title: "Конкурсы", slug: "konkursy", icon: "konkursy.png" },
-  { title: "Хакатоны", slug: "hakatony", icon: "hakatony.png" },
-  { title: "Челленджи", slug: "challenges", icon: "challenges.png" },
-  { title: "Кейс-чемпионаты", slug: "keys-chempionaty", icon: "keys.png" },
-  { title: "Акселераторы", slug: "akseleratory", icon: "akseleratory.png" },
-  { title: "Конференции", slug: "konferentsii", icon: "konferentsii.png" },
-  { title: "Стажировки", slug: "stazhirovki", icon: "stazhirovki.png" },
-  { title: "Гранты", slug: "granty", icon: "granty.png" },
-  { title: "Мастер-классы", slug: "master-klassy", icon: "masterklassy.png" },
+// Ваш статический список категорий (используем правильные пути)
+const STATIC_CATEGORIES = [
+  { title: "Олимпиады", slug: "olimpiady", icon: "/icons/olympiady.png" },
+  { title: "Конкурсы", slug: "konkursy", icon: "/icons/konkursy.png" },
+  { title: "Хакатоны", slug: "hakatony", icon: "/icons/hakatony.png" },
+  { title: "Челленджи", slug: "challenges", icon: "/icons/challenges.png" },
+  { title: "Кейс-чемпионаты", slug: "keys-chempionaty", icon: "/icons/keys.png" },
+  { title: "Акселераторы", slug: "akseleratory", icon: "/icons/akseleratory.png" },
+  { title: "Конференции", slug: "konferentsii", icon: "/icons/konferentsii.png" },
+  { title: "Стажировки", slug: "stazhirovki", icon: "/icons/stazhirovki.png" },
+  { title: "Гранты", slug: "granty", icon: "/icons/granty.png" },
+  { title: "Мастер-классы", slug: "master-klassy", icon: "/icons/masterklassy.png" },
 ];
+
+// Маппинг slug → id для категорий
+const CATEGORY_MAP: Record<string, number> = {
+  'olimpiady': 1,
+  'konkursy': 2,
+  'hakatony': 3,
+  'challenges': 4,
+  'keys-chempionaty': 5,
+  'akseleratory': 6,
+  'konferentsii': 7,
+  'stazhirovki': 8,
+  'granty': 9,
+  'master-klassy': 10,
+};
+
+// Маппинг id → title для подсчета
+const CATEGORY_ID_TO_TITLE: Record<number, string> = {
+  1: "Олимпиады",
+  2: "Конкурсы",
+  3: "Хакатоны",
+  4: "Челленджи",
+  5: "Кейс-чемпионаты",
+  6: "Акселераторы",
+  7: "Конференции",
+  8: "Стажировки",
+  9: "Гранты",
+  10: "Мастер-классы",
+};
+
+// Маппинг slug → icon для получения правильных путей
+const SLUG_TO_ICON: Record<string, string> = {
+  'olimpiady': '/icons/olympiady.png',
+  'konkursy': '/icons/konkursy.png',
+  'hakatony': '/icons/hakatony.png',
+  'challenges': '/icons/challenges.png',
+  'keys-chempionaty': '/icons/keys.png',
+  'akseleratory': '/icons/akseleratory.png',
+  'konferentsii': '/icons/konferentsii.png',
+  'stazhirovki': '/icons/stazhirovki.png',
+  'granty': '/icons/granty.png',
+  'master-klassy': '/icons/masterklassy.png',
+};
 
 export default function Home() {
   const [search, setSearch] = useState("");
@@ -34,6 +76,7 @@ export default function Home() {
     sort: "deadline_asc" as string,
   });
 
+  // Получаем все олимпиады с учетом фильтров
   const { data: olympiads = [] } = useOlympiadsQuery({
     search: search || undefined,
     subjects: panelFilters.subjects.length ? panelFilters.subjects : undefined,
@@ -44,11 +87,20 @@ export default function Home() {
 
   const { data: categories = [], isLoading: catsLoading } = useCategories();
 
-  // Если БД пуста — используем статический список (в формате Category)
+  // Формируем финальный список категорий
   const finalCategories: Category[] = useMemo(() => {
-    if (categories && categories.length > 0) return categories;
-    return CATEGORIES.map((c, i) => ({
-      id: 10000 + i,
+    if (categories && categories.length > 0) {
+      // Используем категории из API
+      return categories.map(cat => ({
+        ...cat,
+        id: CATEGORY_MAP[cat.slug] || cat.id,
+        icon: SLUG_TO_ICON[cat.slug] || `/icons/${cat.slug}.png`
+      })).filter(cat => cat.is_active);
+    }
+    
+    // Fallback: статические категории с правильными id
+    return STATIC_CATEGORIES.map((c, i) => ({
+      id: CATEGORY_MAP[c.slug] || (10000 + i),
       title: c.title,
       slug: c.slug,
       icon: c.icon,
@@ -58,28 +110,33 @@ export default function Home() {
     }));
   }, [categories]);
 
-  // Счётчик по категориям
-  const countByCategory = olympiads.reduce((acc, o) => {
-    let title = "Другое";
-
-    // prefer numeric category_id
-    if (typeof (o as any).category_id === "number") {
-      const cat = finalCategories.find((c) => c.id === (o as any).category_id);
-      if (cat) title = cat.title;
-    }
-
-    // fallback: строковое поле category (старые данные)
-    if (title === "Другое" && (o as any).category) {
-      const catFromField = finalCategories.find(
-        (c) => c.slug === String((o as any).category) || c.title === (o as any).category
-      );
-      if (catFromField) title = catFromField.title;
-      else title = String((o as any).category);
-    }
-
-    acc[title] = (acc[title] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  // ПРАВИЛЬНЫЙ подсчет по категориям
+  const countByCategory = useMemo(() => {
+    const counts: Record<string, number> = {};
+    
+    // Инициализируем все категории с 0
+    finalCategories.forEach(cat => {
+      counts[cat.title] = 0;
+    });
+    
+    // Считаем олимпиады по category_id
+    olympiads.forEach((olympiad: Olympiad) => {
+      // Пытаемся найти категорию по ID
+      const category = finalCategories.find(cat => cat.id === olympiad.category_id);
+      
+      if (category) {
+        counts[category.title] = (counts[category.title] || 0) + 1;
+      } else {
+        // Если не нашли по ID, пробуем найти по названию через маппинг
+        const categoryTitle = CATEGORY_ID_TO_TITLE[olympiad.category_id];
+        if (categoryTitle && counts[categoryTitle] !== undefined) {
+          counts[categoryTitle] = (counts[categoryTitle] || 0) + 1;
+        }
+      }
+    });
+    
+    return counts;
+  }, [olympiads, finalCategories]);
 
   return (
     <div className="min-h-screen relative overflow-x-hidden">
@@ -131,7 +188,12 @@ export default function Home() {
         </div>
 
         <div className="text-center mb-8">
-          <p className="text-white/70 italic text-lg">Выберите категорию</p>
+          <p className="text-white/70 italic text-lg">
+            {search || panelFilters.subjects.length > 0 || panelFilters.hasPrize || panelFilters.deadlineSoon
+              ? `Найдено мероприятий: ${olympiads.length}`
+              : "Выберите категорию"
+            }
+          </p>
         </div>
 
         {/* CATEGORIES */}
@@ -141,49 +203,46 @@ export default function Home() {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
               {finalCategories
-                .filter((c) => c.is_active)
                 .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-                .map((cat) => (
-                  <Link
-                    key={cat.id}
-                    href={`/category/${encodeURIComponent(cat.slug)}`}
-                    className="group"
-                  >
-                    {/* Внутри Link — НЕ использовать <a>. Просто div/вложенные элементы */}
-                    <div className="group cursor-pointer bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 hover:border-purple-300/50 hover:bg-white/15 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20">
-                      <div className="p-4 sm:p-6 lg:p-8 text-center flex flex-col items-center justify-center h-full">
-                        <div className="relative mb-3 sm:mb-5 w-16 h-16 sm:w-20 lg:w-24 sm:h-20 lg:h-24 group-hover:scale-110 transition-transform duration-500">
-                          <div className="absolute inset-0 rounded-full bg-purple-500/30 blur-2xl scale-0 group-hover:scale-150 transition-transform duration-1000" />
-                          <div className="relative w-full h-full rounded-full overflow-hidden ring-4 ring-purple-300/30 ring-offset-4 ring-offset-transparent shadow-2xl">
-                            {cat.icon ? (
+                .map((cat) => {
+                  const iconSrc = cat.icon || SLUG_TO_ICON[cat.slug] || "/icons/vercel.svg";
+                  const count = countByCategory[cat.title] || 0;
+                  
+                  return (
+                    <Link
+                      key={cat.id}
+                      href={`/category/${encodeURIComponent(cat.slug)}`}
+                      className="group"
+                    >
+                      <div className="group cursor-pointer bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 hover:border-purple-300/50 hover:bg-white/15 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20">
+                        <div className="p-4 sm:p-6 lg:p-8 text-center flex flex-col items-center justify-center h-full">
+                          <div className="relative mb-3 sm:mb-5 w-16 h-16 sm:w-20 lg:w-24 sm:h-20 lg:h-24 group-hover:scale-110 transition-transform duration-500">
+                            <div className="absolute inset-0 rounded-full bg-purple-500/30 blur-2xl scale-0 group-hover:scale-150 transition-transform duration-1000" />
+                            <div className="relative w-full h-full rounded-full overflow-hidden ring-4 ring-purple-300/30 ring-offset-4 ring-offset-transparent shadow-2xl">
                               <Image
-                                src={`/icons/${cat.icon}`}
+                                src={iconSrc}
                                 alt={cat.title}
                                 fill
                                 sizes="(max-width: 640px) 64px, (max-width: 1024px) 80px, 96px"
                                 className="object-cover scale-105 transition-transform duration-700 group-hover:scale-110"
                                 unoptimized
                               />
-                            ) : (
-                              <div className="bg-white/20 flex items-center justify-center text-white text-2xl font-bold">
-                                {cat.title[0]}
-                              </div>
-                            )}
-                            <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/10 to-purple-300/20 mix-blend-overlay" />
+                              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/10 to-purple-300/20 mix-blend-overlay" />
+                            </div>
                           </div>
+
+                          <h3 className="text-white font-black text-sm sm:text-base lg:text-xl mb-1 leading-tight px-2">
+                            {cat.title}
+                          </h3>
+
+                          <p className="text-purple-200/80 text-xs sm:text-sm font-medium">
+                            Всего: {count}
+                          </p>
                         </div>
-
-                        <h3 className="text-white font-black text-sm sm:text-base lg:text-xl mb-1 leading-tight px-2">
-                          {cat.title}
-                        </h3>
-
-                        <p className="text-purple-200/80 text-xs sm:text-sm font-medium">
-                          Всего: {countByCategory[cat.title] || 0}
-                        </p>
                       </div>
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  );
+                })}
             </div>
           )}
         </div>
