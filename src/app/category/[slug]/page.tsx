@@ -1,3 +1,4 @@
+// src/app/category/[slug]/page.tsx
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
@@ -6,7 +7,8 @@ import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import type { Olympiad } from "@/types/Olympiad";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useCategories } from "@/hooks/useCategories";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://olympsearch-api.onrender.com";
 
@@ -15,27 +17,95 @@ export default function CategoryPage() {
   const router = useRouter();
   const [search, setSearch] = useState("");
 
-  const { data: olympiads = [], isLoading } = useQuery<Olympiad[]>({
-    queryKey: ["olympiads", "category", slug],
-    queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/v1/olympiads/filter?category=${slug}`);
-      if (!res.ok) return [];
-      return res.json();
-    },
-  });
+  // categories предоставляют title (русский) и slug (ascii) — используем их как источник правды для UI
+  const { data: categories = [], isLoading: catsLoading } = useCategories();
 
-  const filtered = olympiads.filter(o =>
-    o.title.toLowerCase().includes(search.toLowerCase())
+  // Найдём объект категории (если есть) — чтобы отобразить русское название и знать id
+  const currentCategory = useMemo(
+    () => categories.find((c) => String(c.slug) === String(slug)),
+    [categories, slug]
   );
 
-  // Редирект при точном совпадении
-  if (search && filtered.length === 1) {
-    router.push(`/olympiad/${filtered[0].slug}`);
-  }
+  const displayTitle = currentCategory?.title ?? decodeURIComponent(slug) ?? slug;
 
-  const categoryTitle = olympiads[0]
-    ? olympiads[0].category_id // можно будет потом джойнить с categories
-    : slug;
+  // queryKey зависит от slug и от возможного category_id (если есть)
+  const queryKey = ["olympiads", "category", slug, currentCategory?.id];
+
+  const { data: olympiads = [], isLoading } = useQuery<Olympiad[]>({
+    queryKey,
+    queryFn: async () => {
+      // 1) сначала пробуем by slug (api поддерживает filter?category=<slug>)
+      const bySlugUrl = `${API_URL}/api/v1/olympiads/filter?category=${encodeURIComponent(slug)}`;
+      try {
+        const r1 = await fetch(bySlugUrl, { cache: "no-store" });
+        if (r1.ok) {
+          const json = await r1.json();
+          if (Array.isArray(json) && json.length > 0) return json as Olympiad[];
+          // если пустой массив — попробуем fallback ниже
+        }
+      } catch (e) {
+        // сетевые ошибки — идём дальше, попробуем fallback
+      }
+
+      // 2) fallback: если у нас есть numeric category_id — пробуем запрос по id
+      if (currentCategory?.id) {
+        // некоторые бекенды ожидают параметр category_id или categoryId — сначала пробуем category_id
+        const tryUrls = [
+          `${API_URL}/api/v1/olympiads/filter?category_id=${currentCategory.id}`,
+          `${API_URL}/api/v1/olympiads/filter?category=${currentCategory.id}`,
+        ];
+        for (const u of tryUrls) {
+          try {
+            const r = await fetch(u, { cache: "no-store" });
+            if (r.ok) {
+              const json = await r.json();
+              if (Array.isArray(json)) return json as Olympiad[];
+            }
+          } catch (_) {
+            // ignore and continue
+          }
+        }
+      }
+
+      // 3) окончательный fallback: попробуем без фильтра (возможно показать хотя бы что-то)
+      try {
+        const rAll = await fetch(`${API_URL}/api/v1/olympiads/?limit=100`, { cache: "no-store" });
+        if (rAll.ok) {
+          const json = await rAll.json();
+          if (Array.isArray(json)) {
+            // отфильтруем локально по slug/title/category на случай несовпадений
+            return (json as Olympiad[]).filter((o) => {
+              // если есть category_id — сопоставляем с currentCategory.id
+              if (currentCategory?.id && typeof o.category_id === "number") return o.category_id === currentCategory.id;
+              // или если у олимпиад есть строковое поле category — сравним slug/title
+              if ((o as any).category) {
+                const c = String((o as any).category).toLowerCase();
+                return c === slug.toLowerCase() || c === currentCategory?.title?.toLowerCase();
+              }
+              return false;
+            });
+          }
+        }
+      } catch (e) {
+        // nothing
+      }
+
+      // если всё упало — вернём пустой массив
+      return [];
+    },
+    staleTime: 1000 * 30, // 30s
+    refetchOnWindowFocus: false,
+  });
+
+  // локальный фильтр поиска (по title)
+  const filtered = olympiads.filter((o) => o.title.toLowerCase().includes(search.toLowerCase()));
+
+  // UX: редирект при точном совпадении (поиск)
+  if (search && filtered.length === 1) {
+    const target = `/olympiad/${encodeURIComponent(filtered[0].slug)}`;
+    // router.push — используем programmatic navigation
+    router.push(target);
+  }
 
   return (
     <div className="min-h-screen relative overflow-x-hidden">
@@ -45,7 +115,7 @@ export default function CategoryPage() {
       <div className="relative z-10">
         <div className="text-center pt-20 pb-10 px-4">
           <h1 className="text-5xl md:text-6xl font-black bg-gradient-to-r from-[#eeaef6] via-[#e7d8ff] to-white bg-clip-text text-transparent tracking-tight">
-            {categoryTitle}
+            {displayTitle}
           </h1>
         </div>
 
@@ -65,13 +135,15 @@ export default function CategoryPage() {
         <div className="max-w-7xl mx-auto px-4 pb-20">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {isLoading
-              ? Array(8).fill(0).map((_, i) => (
+              ? Array.from({ length: 8 }).map((_, i) => (
                   <div key={i} className="h-96 rounded-3xl bg-white/5 backdrop-blur animate-pulse" />
                 ))
               : filtered.length === 0
-              ? <div className="col-span-full text-center text-white/70 text-2xl py-20">
+              ? (
+                <div className="col-span-full text-center text-white/70 text-2xl py-20">
                   В этой категории пока нет мероприятий
                 </div>
+              )
               : filtered.map((o, i) => (
                   <div
                     key={o.id}
@@ -79,7 +151,6 @@ export default function CategoryPage() {
                     style={{ animationDelay: `${i * 50 + 400}ms`, animationFillMode: "forwards" }}
                   >
                     <div className="glass-card p-6 h-96 flex flex-col">
-                      {/* Логотип организатора — потом будем джойнить */}
                       {o.logo_url ? (
                         <div className="relative w-full h-32 mb-5 bg-white/10 rounded-xl overflow-hidden border border-white/20">
                           <Image src={o.logo_url} alt={o.title} fill sizes="25vw" className="object-contain p-4" unoptimized />
