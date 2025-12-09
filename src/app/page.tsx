@@ -11,6 +11,7 @@ import { useCategories } from "@/hooks/useCategories";
 import type { Olympiad } from "@/types/Olympiad";
 import type { Category } from "@/types/Category";
 
+
 const CATEGORIES = [
   { title: "Олимпиады", slug: "olimpiady", icon: "olympiady.png" },
   { title: "Конкурсы", slug: "konkursy", icon: "konkursy.png" },
