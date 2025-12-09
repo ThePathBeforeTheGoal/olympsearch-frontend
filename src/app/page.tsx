@@ -6,23 +6,22 @@ import { useState, useMemo } from "react";
 import Header from "@/components/Header";
 import Link from "next/link";
 import FiltersPanel from "@/components/filters/FiltersPanel";
-import { useOlympiadsQuery } from "@/hooks/useOlympiadsQuery";
 import { useCategories } from "@/hooks/useCategories";
-import type { Olympiad } from "@/types/Olympiad";
 import type { Category } from "@/types/Category";
+import { useAllOlympiads } from "@/hooks/useAllOlympiads";
 
-// Ваш статический список категорий (используем правильные пути)
+// Ваш статический список категорий
 const STATIC_CATEGORIES = [
-  { title: "Олимпиады", slug: "olimpiady", icon: "/icons/olympiady.png" },
-  { title: "Конкурсы", slug: "konkursy", icon: "/icons/konkursy.png" },
-  { title: "Хакатоны", slug: "hakatony", icon: "/icons/hakatony.png" },
-  { title: "Челленджи", slug: "challenges", icon: "/icons/challenges.png" },
-  { title: "Кейс-чемпионаты", slug: "keys-chempionaty", icon: "/icons/keys.png" },
-  { title: "Акселераторы", slug: "akseleratory", icon: "/icons/akseleratory.png" },
-  { title: "Конференции", slug: "konferentsii", icon: "/icons/konferentsii.png" },
-  { title: "Стажировки", slug: "stazhirovki", icon: "/icons/stazhirovki.png" },
-  { title: "Гранты", slug: "granty", icon: "/icons/granty.png" },
-  { title: "Мастер-классы", slug: "master-klassy", icon: "/icons/masterklassy.png" },
+  { title: "Олимпиады", slug: "olimpiady", icon: "olympiady.png" },
+  { title: "Конкурсы", slug: "konkursy", icon: "konkursy.png" },
+  { title: "Хакатоны", slug: "hakatony", icon: "hakatony.png" },
+  { title: "Челленджи", slug: "challenges", icon: "challenges.png" },
+  { title: "Кейс-чемпионаты", slug: "keys-chempionaty", icon: "keys.png" },
+  { title: "Акселераторы", slug: "akseleratory", icon: "akseleratory.png" },
+  { title: "Конференции", slug: "konferentsii", icon: "konferentsii.png" },
+  { title: "Стажировки", slug: "stazhirovki", icon: "stazhirovki.png" },
+  { title: "Гранты", slug: "granty", icon: "granty.png" },
+  { title: "Мастер-классы", slug: "master-klassy", icon: "masterklassy.png" },
 ];
 
 // Маппинг slug → id для категорий
@@ -53,20 +52,6 @@ const CATEGORY_ID_TO_TITLE: Record<number, string> = {
   10: "Мастер-классы",
 };
 
-// Маппинг slug → icon для получения правильных путей
-const SLUG_TO_ICON: Record<string, string> = {
-  'olimpiady': '/icons/olympiady.png',
-  'konkursy': '/icons/konkursy.png',
-  'hakatony': '/icons/hakatony.png',
-  'challenges': '/icons/challenges.png',
-  'keys-chempionaty': '/icons/keys.png',
-  'akseleratory': '/icons/akseleratory.png',
-  'konferentsii': '/icons/konferentsii.png',
-  'stazhirovki': '/icons/stazhirovki.png',
-  'granty': '/icons/granty.png',
-  'master-klassy': '/icons/masterklassy.png',
-};
-
 export default function Home() {
   const [search, setSearch] = useState("");
   const [panelFilters, setPanelFilters] = useState({
@@ -76,25 +61,18 @@ export default function Home() {
     sort: "deadline_asc" as string,
   });
 
-  // Получаем все олимпиады с учетом фильтров
-  const { data: olympiads = [] } = useOlympiadsQuery({
-    search: search || undefined,
-    subjects: panelFilters.subjects.length ? panelFilters.subjects : undefined,
-    has_prize: panelFilters.hasPrize || undefined,
-    deadline_days: panelFilters.deadlineSoon ? 14 : undefined,
-    sort: panelFilters.sort,
-  });
+  // Получаем ВСЕ олимпиады (как в странице категории)
+  const { data: allOlympiads = [], isLoading: olympiadsLoading } = useAllOlympiads();
 
   const { data: categories = [], isLoading: catsLoading } = useCategories();
 
   // Формируем финальный список категорий
   const finalCategories: Category[] = useMemo(() => {
     if (categories && categories.length > 0) {
-      // Используем категории из API
+      // Используем категории из API, но гарантируем правильные id
       return categories.map(cat => ({
         ...cat,
         id: CATEGORY_MAP[cat.slug] || cat.id,
-        icon: SLUG_TO_ICON[cat.slug] || `/icons/${cat.slug}.png`
       })).filter(cat => cat.is_active);
     }
     
@@ -110,7 +88,7 @@ export default function Home() {
     }));
   }, [categories]);
 
-  // ПРАВИЛЬНЫЙ подсчет по категориям
+  // ПРАВИЛЬНЫЙ подсчет по категориям (используем ВСЕ олимпиады)
   const countByCategory = useMemo(() => {
     const counts: Record<string, number> = {};
     
@@ -119,24 +97,19 @@ export default function Home() {
       counts[cat.title] = 0;
     });
     
-    // Считаем олимпиады по category_id
-    olympiads.forEach((olympiad: Olympiad) => {
-      // Пытаемся найти категорию по ID
-      const category = finalCategories.find(cat => cat.id === olympiad.category_id);
-      
-      if (category) {
-        counts[category.title] = (counts[category.title] || 0) + 1;
-      } else {
-        // Если не нашли по ID, пробуем найти по названию через маппинг
-        const categoryTitle = CATEGORY_ID_TO_TITLE[olympiad.category_id];
-        if (categoryTitle && counts[categoryTitle] !== undefined) {
-          counts[categoryTitle] = (counts[categoryTitle] || 0) + 1;
-        }
+    // Считаем ВСЕ олимпиады по category_id
+    allOlympiads.forEach((olympiad: any) => {
+      const categoryTitle = CATEGORY_ID_TO_TITLE[olympiad.category_id];
+      if (categoryTitle && counts[categoryTitle] !== undefined) {
+        counts[categoryTitle] = (counts[categoryTitle] || 0) + 1;
       }
     });
     
+    console.log("Подсчет по категориям:", counts);
+    console.log("Всего олимпиад:", allOlympiads.length);
+    
     return counts;
-  }, [olympiads, finalCategories]);
+  }, [allOlympiads, finalCategories]);
 
   return (
     <div className="min-h-screen relative overflow-x-hidden">
@@ -189,60 +162,58 @@ export default function Home() {
 
         <div className="text-center mb-8">
           <p className="text-white/70 italic text-lg">
-            {search || panelFilters.subjects.length > 0 || panelFilters.hasPrize || panelFilters.deadlineSoon
-              ? `Найдено мероприятий: ${olympiads.length}`
-              : "Выберите категорию"
-            }
+            {olympiadsLoading ? "Загрузка данных..." : "Выберите категорию"}
           </p>
         </div>
 
         {/* CATEGORIES */}
         <div className="max-w-7xl mx-auto px-4 mb-16">
-          {catsLoading ? (
-            <div className="text-center text-white/70">Загрузка категорий...</div>
+          {(catsLoading || olympiadsLoading) ? (
+            <div className="text-center text-white/70">Загрузка...</div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
               {finalCategories
                 .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-                .map((cat) => {
-                  const iconSrc = cat.icon || SLUG_TO_ICON[cat.slug] || "/icons/vercel.svg";
-                  const count = countByCategory[cat.title] || 0;
-                  
-                  return (
-                    <Link
-                      key={cat.id}
-                      href={`/category/${encodeURIComponent(cat.slug)}`}
-                      className="group"
-                    >
-                      <div className="group cursor-pointer bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 hover:border-purple-300/50 hover:bg-white/15 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20">
-                        <div className="p-4 sm:p-6 lg:p-8 text-center flex flex-col items-center justify-center h-full">
-                          <div className="relative mb-3 sm:mb-5 w-16 h-16 sm:w-20 lg:w-24 sm:h-20 lg:h-24 group-hover:scale-110 transition-transform duration-500">
-                            <div className="absolute inset-0 rounded-full bg-purple-500/30 blur-2xl scale-0 group-hover:scale-150 transition-transform duration-1000" />
-                            <div className="relative w-full h-full rounded-full overflow-hidden ring-4 ring-purple-300/30 ring-offset-4 ring-offset-transparent shadow-2xl">
+                .map((cat) => (
+                  <Link
+                    key={cat.id}
+                    href={`/category/${encodeURIComponent(cat.slug)}`}
+                    className="group"
+                  >
+                    <div className="group cursor-pointer bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 hover:border-purple-300/50 hover:bg-white/15 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20">
+                      <div className="p-4 sm:p-6 lg:p-8 text-center flex flex-col items-center justify-center h-full">
+                        <div className="relative mb-3 sm:mb-5 w-16 h-16 sm:w-20 lg:w-24 sm:h-20 lg:h-24 group-hover:scale-110 transition-transform duration-500">
+                          <div className="absolute inset-0 rounded-full bg-purple-500/30 blur-2xl scale-0 group-hover:scale-150 transition-transform duration-1000" />
+                          <div className="relative w-full h-full rounded-full overflow-hidden ring-4 ring-purple-300/30 ring-offset-4 ring-offset-transparent shadow-2xl">
+                            {cat.icon ? (
                               <Image
-                                src={iconSrc}
+                                src={`/icons/${cat.icon}`}
                                 alt={cat.title}
                                 fill
                                 sizes="(max-width: 640px) 64px, (max-width: 1024px) 80px, 96px"
                                 className="object-cover scale-105 transition-transform duration-700 group-hover:scale-110"
                                 unoptimized
                               />
-                              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/10 to-purple-300/20 mix-blend-overlay" />
-                            </div>
+                            ) : (
+                              <div className="bg-white/20 flex items-center justify-center text-white text-2xl font-bold">
+                                {cat.title[0]}
+                              </div>
+                            )}
+                            <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/10 to-purple-300/20 mix-blend-overlay" />
                           </div>
-
-                          <h3 className="text-white font-black text-sm sm:text-base lg:text-xl mb-1 leading-tight px-2">
-                            {cat.title}
-                          </h3>
-
-                          <p className="text-purple-200/80 text-xs sm:text-sm font-medium">
-                            Всего: {count}
-                          </p>
                         </div>
+
+                        <h3 className="text-white font-black text-sm sm:text-base lg:text-xl mb-1 leading-tight px-2">
+                          {cat.title}
+                        </h3>
+
+                        <p className="text-purple-200/80 text-xs sm:text-sm font-medium">
+                          Всего: {countByCategory[cat.title] || 0}
+                        </p>
                       </div>
-                    </Link>
-                  );
-                })}
+                    </div>
+                  </Link>
+                ))}
             </div>
           )}
         </div>
