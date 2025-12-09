@@ -1,10 +1,9 @@
-// src/app/category/[slug]/page.tsx
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
 import { Search, Link2 } from "lucide-react";
 import Image from "next/image";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Header from "@/components/Header";
 import type { Olympiad } from "@/types/Olympiad";
 import { useState, useMemo } from "react";
@@ -12,33 +11,46 @@ import { useCategories } from "@/hooks/useCategories";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://olympsearch-api.onrender.com";
 
+// Маппинг slug → id для категорий
+const CATEGORY_MAP: Record<string, number> = {
+  'olimpiady': 1,
+  'konkursy': 2,
+  'hakatony': 3,
+  'challenges': 4,
+  'keys-chempionaty': 5,
+  'akseleratory': 6,
+  'konferentsii': 7,
+  'stazhirovki': 8,
+  'granty': 9,
+  'master-klassy': 10,
+};
+
 export default function CategoryPage() {
   const { slug } = useParams() as { slug: string };
-  const router = useRouter();
   const [search, setSearch] = useState("");
 
-  // Получаем все олимпиады без фильтрации по категории
-  const { data: olympiads = [], isLoading } = useQuery<Olympiad[]>({
+  // Получаем категории для получения названия
+  const { data: categories = [] } = useCategories();
+  
+  // Получаем ID категории из маппинга
+  const categoryId = CATEGORY_MAP[slug];
+  
+  // Находим категорию для отображения названия
+  const currentCategory = useMemo(
+    () => categories.find((c) => String(c.slug) === String(slug)),
+    [categories, slug]
+  );
+
+  // Получаем все олимпиады и фильтруем на фронтенде (временно, пока API фильтр не работает)
+  const { data: allOlympiads = [], isLoading } = useQuery<Olympiad[]>({
     queryKey: ["olympiads", "all"],
     queryFn: async () => {
       try {
-        const res = await fetch(`${API_URL}/api/v1/olympiads/?limit=100`, { cache: "no-store" });
+        const res = await fetch(`${API_URL}/api/v1/olympiads/?limit=100`, { 
+          cache: "no-store" 
+        });
         if (res.ok) {
-          const data = await res.json();
-          // Фильтруем по категории ВРУЧНУЮ на фронтенде
-          if (slug === "olimpiady") {
-            // Для демо: показываем все, где category_id = 1 (ваши олимпиады)
-            return data.filter((o: Olympiad) => o.category_id === 1);
-          }
-          return data.filter((o: Olympiad) => {
-            // Простая логика: если slug содержит "хакатон" или "hakatony"
-            const title = o.title.toLowerCase();
-            if (slug === "hakatony" && (title.includes("хакатон") || title.includes("цифровой"))) {
-              return true;
-            }
-            // Другие категории...
-            return false;
-          });
+          return await res.json();
         }
       } catch (e) {
         console.error("Error fetching olympiads:", e);
@@ -49,20 +61,24 @@ export default function CategoryPage() {
     refetchOnWindowFocus: false,
   });
 
-  // Для заголовка используем slug
-  const displayTitle = decodeURIComponent(slug).charAt(0).toUpperCase() + 
-                      decodeURIComponent(slug).slice(1);
+  // Фильтруем олимпиады по category_id
+  const categoryOlympiads = useMemo(() => {
+    if (!categoryId) return [];
+    return allOlympiads.filter((o) => o.category_id === categoryId);
+  }, [allOlympiads, categoryId]);
 
-  // локальный фильтр поиска (по title)
-  const filtered = olympiads.filter((o) => 
+  // Для заголовка используем название категории или slug
+  const displayTitle = currentCategory?.title || 
+    decodeURIComponent(slug).charAt(0).toUpperCase() + 
+    decodeURIComponent(slug).slice(1);
+
+  // Локальный фильтр поиска (по title)
+  const filtered = categoryOlympiads.filter((o) => 
     o.title.toLowerCase().includes(search.toLowerCase())
   );
 
-  // UX: редирект при точном совпадении (поиск)
-  if (search && filtered.length === 1) {
-    const target = `/olympiad/${encodeURIComponent(filtered[0].slug)}`;
-    router.push(target);
-  }
+  // Отладочная информация
+  console.log(`Category: ${slug}, ID: ${categoryId}, Found: ${categoryOlympiads.length}`);
 
   return (
     <div className="min-h-screen relative overflow-x-hidden">
@@ -73,6 +89,9 @@ export default function CategoryPage() {
           <h1 className="text-5xl md:text-6xl font-black bg-gradient-to-r from-[#eeaef6] via-[#e7d8ff] to-white bg-clip-text text-transparent tracking-tight">
             {displayTitle}
           </h1>
+          <p className="mt-4 text-white/70">
+            Найдено: {categoryOlympiads.length} мероприятий
+          </p>
         </div>
 
         <div className="max-w-2xl mx-auto px-4 mb-12">
@@ -96,7 +115,10 @@ export default function CategoryPage() {
               ))
             ) : filtered.length === 0 ? (
               <div className="col-span-full text-center text-white/70 text-2xl py-20">
-                В этой категории пока нет мероприятий
+                {categoryId ? 
+                  `В категории "${displayTitle}" пока нет мероприятий` : 
+                  `Категория "${displayTitle}" не найдена`
+                }
               </div>
             ) : (
               filtered.map((o, i) => (
