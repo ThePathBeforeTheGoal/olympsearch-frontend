@@ -11,9 +11,8 @@ import { useCategories } from "@/hooks/useCategories";
 import type { Olympiad } from "@/types/Olympiad";
 import type { Category } from "@/types/Category";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://olympsearch-api.onrender.com";
-
-const CATEGORIES = [
+// Ваш статический список категорий (оставляем для fallback)
+const STATIC_CATEGORIES = [
   { title: "Олимпиады", slug: "olimpiady", icon: "olympiady.png" },
   { title: "Конкурсы", slug: "konkursy", icon: "konkursy.png" },
   { title: "Хакатоны", slug: "hakatony", icon: "hakatony.png" },
@@ -26,7 +25,7 @@ const CATEGORIES = [
   { title: "Мастер-классы", slug: "master-klassy", icon: "masterklassy.png" },
 ];
 
-// Маппинг slug → id для подсчета
+// Маппинг slug → id для категорий
 const CATEGORY_MAP: Record<string, number> = {
   'olimpiady': 1,
   'konkursy': 2,
@@ -40,6 +39,20 @@ const CATEGORY_MAP: Record<string, number> = {
   'master-klassy': 10,
 };
 
+// Маппинг id → title для подсчета
+const CATEGORY_ID_TO_TITLE: Record<number, string> = {
+  1: "Олимпиады",
+  2: "Конкурсы",
+  3: "Хакатоны",
+  4: "Челленджи",
+  5: "Кейс-чемпионаты",
+  6: "Акселераторы",
+  7: "Конференции",
+  8: "Стажировки",
+  9: "Гранты",
+  10: "Мастер-классы",
+};
+
 export default function Home() {
   const [search, setSearch] = useState("");
   const [panelFilters, setPanelFilters] = useState({
@@ -49,7 +62,7 @@ export default function Home() {
     sort: "deadline_asc" as string,
   });
 
-  // Получаем все олимпиады (без фильтров по категории)
+  // Получаем все олимпиады с учетом фильтров
   const { data: olympiads = [] } = useOlympiadsQuery({
     search: search || undefined,
     subjects: panelFilters.subjects.length ? panelFilters.subjects : undefined,
@@ -60,10 +73,18 @@ export default function Home() {
 
   const { data: categories = [], isLoading: catsLoading } = useCategories();
 
-  // Если БД пуста — используем статический список (в формате Category)
+  // Формируем финальный список категорий
   const finalCategories: Category[] = useMemo(() => {
-    if (categories && categories.length > 0) return categories;
-    return CATEGORIES.map((c, i) => ({
+    if (categories && categories.length > 0) {
+      // Используем категории из API, но гарантируем правильные id
+      return categories.map(cat => ({
+        ...cat,
+        id: CATEGORY_MAP[cat.slug] || cat.id,
+      })).filter(cat => cat.is_active);
+    }
+    
+    // Fallback: статические категории с правильными id
+    return STATIC_CATEGORIES.map((c, i) => ({
       id: CATEGORY_MAP[c.slug] || (10000 + i),
       title: c.title,
       slug: c.slug,
@@ -85,9 +106,15 @@ export default function Home() {
     
     // Считаем олимпиады по category_id
     olympiads.forEach(o => {
-      const category = finalCategories.find(c => c.id === o.category_id);
-      if (category) {
-        counts[category.title] = (counts[category.title] || 0) + 1;
+      const categoryTitle = CATEGORY_ID_TO_TITLE[o.category_id];
+      if (categoryTitle && counts[categoryTitle] !== undefined) {
+        counts[categoryTitle] = (counts[categoryTitle] || 0) + 1;
+      } else {
+        // Если категория не найдена в маппинге, ищем по id в finalCategories
+        const category = finalCategories.find(c => c.id === o.category_id);
+        if (category) {
+          counts[category.title] = (counts[category.title] || 0) + 1;
+        }
       }
     });
     
@@ -144,7 +171,12 @@ export default function Home() {
         </div>
 
         <div className="text-center mb-8">
-          <p className="text-white/70 italic text-lg">Выберите категорию</p>
+          <p className="text-white/70 italic text-lg">
+            {search || panelFilters.subjects.length > 0 || panelFilters.hasPrize || panelFilters.deadlineSoon
+              ? `Найдено мероприятий: ${olympiads.length}`
+              : "Выберите категорию"
+            }
+          </p>
         </div>
 
         {/* CATEGORIES */}
@@ -154,7 +186,6 @@ export default function Home() {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
               {finalCategories
-                .filter((c) => c.is_active)
                 .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
                 .map((cat) => (
                   <Link
@@ -162,6 +193,7 @@ export default function Home() {
                     href={`/category/${encodeURIComponent(cat.slug)}`}
                     className="group"
                   >
+                    {/* Внутри Link — НЕ использовать <a>. Просто div/вложенные элементы */}
                     <div className="group cursor-pointer bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 hover:border-purple-300/50 hover:bg-white/15 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20">
                       <div className="p-4 sm:p-6 lg:p-8 text-center flex flex-col items-center justify-center h-full">
                         <div className="relative mb-3 sm:mb-5 w-16 h-16 sm:w-20 lg:w-24 sm:h-20 lg:h-24 group-hover:scale-110 transition-transform duration-500">
