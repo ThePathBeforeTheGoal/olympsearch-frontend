@@ -30,15 +30,7 @@ export default function Footer() {
             >
               <Image src="/icons/telegram.png" alt="Telegram" width={24} height={24} />
             </a>
-            <a
-              href="https://www.youtube.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="YouTube"
-              className="inline-flex items-center justify-center w-9 h-9 rounded-md hover:scale-105 transition"
-            >
-              <Image src="/icons/youtube.png" alt="YouTube" width={24} height={24} />
-            </a>
+           
           </div>
         </div>
 
