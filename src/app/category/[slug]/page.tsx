@@ -140,7 +140,7 @@ export default function CategoryPage() {
                 >
                   {/* КАРТОЧКА С УСЛОВНЫМ РАЗМЕРОМ */}
                   <div className={`
-                    relative bg-white/15 backdrop-blur-xl rounded-xl border border-white/20 
+                    relative bg-white/40 backdrop-blur-xl rounded-xl border border-white/20 
                     hover:border-purple-400/30 hover:bg-white/20 transition-all duration-300 
                     hover:shadow-lg hover:shadow-purple-500/10
                     flex flex-col
