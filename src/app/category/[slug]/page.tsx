@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Search, Link2 } from "lucide-react";
+import { Search, Link2, Calendar, Users } from "lucide-react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import Header from "@/components/Header";
@@ -25,6 +25,17 @@ const CATEGORY_MAP: Record<string, number> = {
   'master-klassy': 10,
 };
 
+// Форматирование даты
+const formatDate = (dateString: string | null) => {
+  if (!dateString) return null;
+  const date = new Date(dateString);
+  return date.toLocaleDateString('ru-RU', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+};
+
 export default function CategoryPage() {
   const { slug } = useParams() as { slug: string };
   const [search, setSearch] = useState("");
@@ -41,12 +52,12 @@ export default function CategoryPage() {
     [categories, slug]
   );
 
-  // Получаем все олимпиады и фильтруем на фронтенде (временно, пока API фильтр не работает)
+  // Получаем все олимпиады и фильтруем на фронтенде
   const { data: allOlympiads = [], isLoading } = useQuery<Olympiad[]>({
     queryKey: ["olympiads", "all"],
     queryFn: async () => {
       try {
-        const res = await fetch(`${API_URL}/api/v1/olympiads/?limit=100`, { 
+        const res = await fetch(`${API_URL}/api/v1/olympiads/?limit=1000`, { 
           cache: "no-store" 
         });
         if (res.ok) {
@@ -77,9 +88,6 @@ export default function CategoryPage() {
     o.title.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Отладочная информация
-  console.log(`Category: ${slug}, ID: ${categoryId}, Found: ${categoryOlympiads.length}`);
-
   return (
     <div className="min-h-screen relative overflow-x-hidden">
       <Header />
@@ -108,10 +116,10 @@ export default function CategoryPage() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 pb-20">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {isLoading ? (
               Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="h-96 rounded-3xl bg-white/5 backdrop-blur animate-pulse" />
+                <div key={i} className="h-[380px] rounded-2xl bg-white/5 backdrop-blur animate-pulse" />
               ))
             ) : filtered.length === 0 ? (
               <div className="col-span-full text-center text-white/70 text-2xl py-20">
@@ -130,56 +138,84 @@ export default function CategoryPage() {
                     animationFillMode: "forwards",
                   }}
                 >
-                  <div className="glass-card p-6 h-96 flex flex-col">
+                  {/* КАРТОЧКА С ФИКСИРОВАННЫМ РАЗМЕРОМ */}
+                  <div className="relative bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 hover:border-purple-400/30 hover:bg-white/15 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10 h-[380px] flex flex-col p-4">
+                    
+                    {/* ЛОГОТИП - ПОКАЗЫВАЕМ ТОЛЬКО ЕСЛИ ЕСТЬ */}
                     {o.logo_url ? (
-                      <div className="relative w-full h-32 mb-5 bg-white/10 rounded-xl overflow-hidden border border-white/20">
+                      <div className="relative w-full h-20 mb-3 rounded-lg overflow-hidden">
                         <Image
                           src={o.logo_url}
                           alt={o.title}
                           fill
-                          sizes="25vw"
-                          className="object-contain p-4"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                          className="object-contain"
                           unoptimized
                         />
                       </div>
-                    ) : (
-                      <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-32 mb-5 flex items-center justify-center text-gray-500 text-sm">
-                        Логотип
-                      </div>
-                    )}
-                    <div className="flex-1 overflow-hidden">
-                      <h3 className="text-xl font-bold text-center mb-3 line-clamp-2">
+                    ) : null}
+
+                    {/* НАЗВАНИЕ СОБЫТИЯ */}
+                    <div className="flex-grow min-h-0">
+                      <h3 className="text-lg font-bold text-[#4c2e8b] mb-2 line-clamp-3 leading-tight">
                         {o.title}
                       </h3>
+
+                      {/* ПРЕДМЕТЫ */}
                       {o.subjects?.length > 0 && (
-                        <div className="flex flex-wrap gap-2 justify-center mb-4">
-                          {o.subjects.slice(0, 4).map((s, idx) => (
+                        <div className="flex flex-wrap gap-1.5 mb-3">
+                          {o.subjects.slice(0, 3).map((s, idx) => (
                             <span
                               key={idx}
-                              className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"
+                              className="px-2.5 py-1 bg-[#352e5c] text-white rounded-lg text-xs font-medium"
                             >
                               {s}
                             </span>
                           ))}
-                          {o.subjects.length > 4 && (
-                            <span className="text-xs text-gray-600">
-                              +{o.subjects.length - 4}
+                          {o.subjects.length > 3 && (
+                            <span className="px-2.5 py-1 bg-[#352e5c]/60 text-white/80 rounded-lg text-xs">
+                              +{o.subjects.length - 3}
                             </span>
                           )}
                         </div>
                       )}
+
+                      {/* ПРИЗ/ОПИСАНИЕ */}
                       {o.prize && (
-                        <p className="text-center text-sm text-gray-700 line-clamp-2 mt-3">
+                        <p className="text-sm text-gray-800 line-clamp-2 mb-3">
                           {o.prize}
                         </p>
                       )}
+
+                      {/* ДАТЫ */}
+                      <div className="space-y-1.5 mb-3">
+                        {(o.start_date || o.end_date) && (
+                          <div className="flex items-center gap-2 text-xs text-gray-700">
+                            <Calendar className="w-3.5 h-3.5" />
+                            <span>
+                              {o.start_date && formatDate(o.start_date)}
+                              {o.start_date && o.end_date && ' - '}
+                              {o.end_date && formatDate(o.end_date)}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {o.is_team !== null && (
+                          <div className="flex items-center gap-2 text-xs text-gray-700">
+                            <Users className="w-3.5 h-3.5" />
+                            <span>{o.is_team ? 'Командное' : 'Индивидуальное'}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="mt-6 pt-4 border-t border-gray-200">
+
+                    {/* КНОПКА "ПЕРЕЙТИ НА САЙТ" */}
+                    <div className="pt-3 border-t border-white/10">
                       <a
                         href={o.source_url || "#"}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center gap-2 text-blue-600 hover:text-blue-800 text-sm font-medium transition"
+                        className="inline-flex items-center justify-center gap-2 text-[#4c2e8b] hover:text-[#6f5bbe] text-sm font-medium transition-colors w-full"
                       >
                         <Link2 className="w-4 h-4" />
                         Перейти на сайт

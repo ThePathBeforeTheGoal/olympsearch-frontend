@@ -12,16 +12,16 @@ import { useAllOlympiads } from "@/hooks/useAllOlympiads";
 
 // Ваш статический список категорий
 const STATIC_CATEGORIES = [
-  { title: "Олимпиады", slug: "olimpiady", icon: "olympiady.png" },
+  { title: "Олимпиады", slug: "olimpiady", icon: "olimpiady.png" },
   { title: "Конкурсы", slug: "konkursy", icon: "konkursy.png" },
   { title: "Хакатоны", slug: "hakatony", icon: "hakatony.png" },
   { title: "Челленджи", slug: "challenges", icon: "challenges.png" },
-  { title: "Кейс-чемпионаты", slug: "keys-chempionaty", icon: "keys.png" },
+  { title: "Кейс-чемпионаты", slug: "keys-chempionaty", icon: "keys-chempionaty.png" },
   { title: "Акселераторы", slug: "akseleratory", icon: "akseleratory.png" },
   { title: "Конференции", slug: "konferentsii", icon: "konferentsii.png" },
   { title: "Стажировки", slug: "stazhirovki", icon: "stazhirovki.png" },
   { title: "Гранты", slug: "granty", icon: "granty.png" },
-  { title: "Мастер-классы", slug: "master-klassy", icon: "masterklassy.png" },
+  { title: "Мастер-классы", slug: "master-klassy", icon: "master-klassy.png" },
 ];
 
 // Маппинг slug → id для категорий
@@ -166,7 +166,7 @@ export default function Home() {
           </p>
         </div>
 
-        {/* CATEGORIES */}
+        {/* CATEGORIES - ИЗМЕНЕНИЯ ТОЛЬКО ЗДЕСЬ! */}
         <div className="max-w-7xl mx-auto px-4 mb-16">
           {(catsLoading || olympiadsLoading) ? (
             <div className="text-center text-white/70">Загрузка...</div>
@@ -207,9 +207,9 @@ export default function Home() {
                           </div>
                         </div>
 
-                        {/* Название категории - растягивается внутри карточки */}
-                        <div className="flex-grow flex items-center justify-center w-full px-2">
-                          <h3 className="text-white font-black text-sm sm:text-base lg:text-xl mb-1 leading-tight break-words hyphens-auto line-clamp-2 max-h-[3.5em] overflow-hidden">
+                        {/* НАЗВАНИЕ КАТЕГОРИИ - ИЗМЕНЕНИЯ ТОЛЬКО ЗДЕСЬ! */}
+                        <div className="flex-grow flex items-center justify-center w-full px-1"> {/* Уменьшен padding */}
+                          <h3 className="text-white font-black text-sm sm:text-base lg:text-xl leading-tight whitespace-normal text-balance w-full break-keep hyphens-none">
                             {cat.title}
                           </h3>
                         </div>
