@@ -140,8 +140,8 @@ export default function CategoryPage() {
                 >
                   {/* КАРТОЧКА С УСЛОВНЫМ РАЗМЕРОМ */}
                   <div className={`
-                    relative bg-white/90 backdrop-blur-xl rounded-xl border border-white/20 
-                    hover:border-purple-400/30 hover:bg-white/20 transition-all duration-300 
+                    relative bg-white/98 backdrop-blur-xl rounded-xl border border-white/20 
+                    hover:border-purple-100/99 hover:bg-white/20 transition-all duration-300 
                     hover:shadow-lg hover:shadow-purple-500/10
                     flex flex-col
                     ${o.logo_url ? 'min-h-[280px]' : 'min-h-[220px]'}
