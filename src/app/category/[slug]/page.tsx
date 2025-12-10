@@ -116,10 +116,10 @@ export default function CategoryPage() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 pb-20">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {isLoading ? (
               Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="h-[380px] rounded-2xl bg-white/5 backdrop-blur animate-pulse" />
+                <div key={i} className="h-[280px] rounded-xl bg-white/5 backdrop-blur animate-pulse" />
               ))
             ) : filtered.length === 0 ? (
               <div className="col-span-full text-center text-white/70 text-2xl py-20">
@@ -138,12 +138,19 @@ export default function CategoryPage() {
                     animationFillMode: "forwards",
                   }}
                 >
-                  {/* КАРТОЧКА С ФИКСИРОВАННЫМ РАЗМЕРОМ */}
-                  <div className="relative bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 hover:border-purple-400/30 hover:bg-white/15 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10 h-[380px] flex flex-col p-4">
+                  {/* КАРТОЧКА С УСЛОВНЫМ РАЗМЕРОМ */}
+                  <div className={`
+                    relative bg-white/15 backdrop-blur-xl rounded-xl border border-white/20 
+                    hover:border-purple-400/30 hover:bg-white/20 transition-all duration-300 
+                    hover:shadow-lg hover:shadow-purple-500/10
+                    flex flex-col
+                    ${o.logo_url ? 'min-h-[280px]' : 'min-h-[220px]'}
+                    p-3
+                  `}>
                     
                     {/* ЛОГОТИП - ПОКАЗЫВАЕМ ТОЛЬКО ЕСЛИ ЕСТЬ */}
                     {o.logo_url ? (
-                      <div className="relative w-full h-20 mb-3 rounded-lg overflow-hidden">
+                      <div className="relative w-full h-16 mb-3 rounded-lg overflow-hidden flex-shrink-0">
                         <Image
                           src={o.logo_url}
                           alt={o.title}
@@ -153,27 +160,29 @@ export default function CategoryPage() {
                           unoptimized
                         />
                       </div>
-                    ) : null}
+                    ) : (
+                      <div className="h-2 mb-2 flex-shrink-0"></div> /* Пустой отступ для карточек без лого */
+                    )}
 
                     {/* НАЗВАНИЕ СОБЫТИЯ */}
                     <div className="flex-grow min-h-0">
-                      <h3 className="text-lg font-bold text-[#4c2e8b] mb-2 line-clamp-3 leading-tight">
+                      <h3 className="text-base font-black text-[#2a1b5c] mb-1 line-clamp-3 leading-tight">
                         {o.title}
                       </h3>
 
                       {/* ПРЕДМЕТЫ */}
                       {o.subjects?.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mb-3">
+                        <div className="flex flex-wrap gap-1 mb-2">
                           {o.subjects.slice(0, 3).map((s, idx) => (
                             <span
                               key={idx}
-                              className="px-2.5 py-1 bg-[#352e5c] text-white rounded-lg text-xs font-medium"
+                              className="px-2 py-0.5 bg-[#352e5c] text-white rounded text-xs font-medium"
                             >
                               {s}
                             </span>
                           ))}
                           {o.subjects.length > 3 && (
-                            <span className="px-2.5 py-1 bg-[#352e5c]/60 text-white/80 rounded-lg text-xs">
+                            <span className="px-2 py-0.5 bg-[#352e5c]/60 text-white/80 rounded text-xs">
                               +{o.subjects.length - 3}
                             </span>
                           )}
@@ -182,16 +191,16 @@ export default function CategoryPage() {
 
                       {/* ПРИЗ/ОПИСАНИЕ */}
                       {o.prize && (
-                        <p className="text-sm text-gray-800 line-clamp-2 mb-3">
+                        <p className="text-xs text-gray-800 line-clamp-2 mb-2">
                           {o.prize}
                         </p>
                       )}
 
                       {/* ДАТЫ */}
-                      <div className="space-y-1.5 mb-3">
+                      <div className="space-y-1 mb-2">
                         {(o.start_date || o.end_date) && (
-                          <div className="flex items-center gap-2 text-xs text-gray-700">
-                            <Calendar className="w-3.5 h-3.5" />
+                          <div className="flex items-center gap-1.5 text-xs text-gray-700">
+                            <Calendar className="w-3 h-3" />
                             <span>
                               {o.start_date && formatDate(o.start_date)}
                               {o.start_date && o.end_date && ' - '}
@@ -201,8 +210,8 @@ export default function CategoryPage() {
                         )}
                         
                         {o.is_team !== null && (
-                          <div className="flex items-center gap-2 text-xs text-gray-700">
-                            <Users className="w-3.5 h-3.5" />
+                          <div className="flex items-center gap-1.5 text-xs text-gray-700">
+                            <Users className="w-3 h-3" />
                             <span>{o.is_team ? 'Командное' : 'Индивидуальное'}</span>
                           </div>
                         )}
@@ -210,14 +219,14 @@ export default function CategoryPage() {
                     </div>
 
                     {/* КНОПКА "ПЕРЕЙТИ НА САЙТ" */}
-                    <div className="pt-3 border-t border-white/10">
+                    <div className="pt-2 border-t border-white/10 flex-shrink-0">
                       <a
                         href={o.source_url || "#"}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center gap-2 text-[#4c2e8b] hover:text-[#6f5bbe] text-sm font-medium transition-colors w-full"
+                        className="inline-flex items-center justify-center gap-1.5 text-[#3a2b6b] hover:text-[#4c3a8b] text-sm font-semibold transition-colors w-full"
                       >
-                        <Link2 className="w-4 h-4" />
+                        <Link2 className="w-3.5 h-3.5" />
                         Перейти на сайт
                       </a>
                     </div>
